@@ -1,0 +1,63 @@
+# //oemcomma    ,
+# //oemperiod   .
+# //oem2        /
+# //oem1        ;
+# //oem7        '
+# //oem4        [
+# //oem6        ]
+# //oem5        \
+# //oemminus    -
+# //oemplus     =
+
+caps: # tigger with CapsLock. Used in 1 (normal) and 2 (insert) state
+  e: esc
+  h: backspace
+  y: ctrl+backspace
+  l: del
+  d: del
+  j: enter
+  r: enter
+  t: tab
+  g: shift+tab
+  c: shift+f10 # Shift + F10 (context menu)
+  v: ctrl+shift+v # Ctrl + Shift + v (paste without formatting)
+  m: ctrl+tab
+  comma: ctrl+shift+tab
+
+
+common: # without first step
+  h: left         # left arrow
+  j: down         # down arrow
+  k: up           # up arrow
+  l: right        # right arrow
+  n: home
+  m: page down
+  comma: page up
+  period: end
+  y: ctrl+left        # CTRL + left arrow (go by word)
+  o: ctrl+right       # CTRL + right arrow (go by word)
+  z: ctrl+z             # CTRL + z
+  x: ctrl+x             # CTRL + x
+  c: ctrl+c             # CTRL + c
+  v: ctrl+v             # CTRL + v
+
+f: # first step f
+  # F keys
+  d1: f1
+  d2: f2
+  d3: f3
+  d4: f4
+  d5: f5
+  d6: f6
+  q: f7
+  w: f8
+  e: f9
+  r: f10
+  t: f11
+  f: f12
+  # other shortcuts
+  s: shift+esc # shift ESC
+
+i: # first step i
+  j: end, enter # Insert line below
+  k: up, end, enter # Insert line above
