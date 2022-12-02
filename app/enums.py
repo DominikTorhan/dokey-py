@@ -89,7 +89,10 @@ class Keys(Enum):
     def from_string(s: str) -> "Keys":
         if not s:
             return Keys.NONE
-        return keyboard_to_dokey_map[s.strip()]
+        key = keyboard_to_dokey_map.get(s.strip())
+        if not key:
+            x = "xxx"
+        return key
 
     def to_string(self) -> str:
         for item in keyboard_to_dokey_map.items():

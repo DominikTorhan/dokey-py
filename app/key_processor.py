@@ -53,6 +53,9 @@ class Processor:
             return result
 
         # command key
+        result = self.try_process_command_key()
+        if result is not None:
+            return result
 
         # caps key
         result = self.process_normal_and_insert_with_capital()
@@ -232,3 +235,9 @@ class Processor:
         modificators.win = win
         modificators.caps = caps
         return modificators
+
+    def try_process_command_key(self):
+        if not self.app_state.modificators.caps:
+            return None
+        if self.input_key.key == Keys.BACKSPACE:# TODO command to config
+            return self.create_result_with_app_state(self.app_state, [Keys.COMMAND_EXIT], True)

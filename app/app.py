@@ -1,3 +1,4 @@
+from typing import List
 from app.app_state import AppState
 from app.key_processor import Processor, Result
 from app.config import Config
@@ -27,19 +28,19 @@ class App:
         # main loop
         while True:
             key, is_up, pass_func = self.func_sys_read_event()
-            if key == Keys.COMMAND_EXIT:
-                print("EXEC EXIT COMMAND!")
-                break
             if is_sending:
                 continue
-            is_sending = True
             print("new event:", key, "is_up: ", is_up)
             result = process(key, is_up)
             prevent = False
             if result:
                 self.app_state = result.app_state
                 print("new state: ", self.app_state.to_string())
-                send = result.send
+                send: List[Keys] = result.send
+                if Keys.COMMAND_EXIT in send:
+                    print("EXEC EXIT COMMAND!")
+                    break
+                is_sending = True
                 prevent = result.prevent_key_process
                 if send:
                     send_keyboard = keys_to_send(send)
@@ -48,3 +49,5 @@ class App:
             is_sending = False
             if not prevent:
                 pass_func()
+
+        print("Terminate!")

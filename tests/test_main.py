@@ -42,6 +42,7 @@ def app_state_from_string(string: str) -> AppState:
     app_state.prevent_esc_on_caps_up = "*" in strs[2]
     return app_state
 
+
 def modificators_from_string(string) -> Modificators:
     modificators = Modificators()
     modificators.control = "^" in string
@@ -50,7 +51,6 @@ def modificators_from_string(string) -> Modificators:
     modificators.win = "w" in string
     modificators.caps = "c" in string
     return modificators
-
 
 
 def result_to_string(result: Result) -> str:
@@ -131,14 +131,15 @@ test_app_playlist = [
             (Keys.CAPS, "u"),
             (Keys.CAPS, "d"),
             (Keys.CAPS, "u"),
-            (Keys.COMMAND_EXIT, "d"),
+            (Keys.CAPS, "d"),
+            (Keys.BACKSPACE, "d"),  # caps+backspace - exit app
         ],
         ["down"],
     ),
     (
         [
             (Keys.CAPS, "d"),
-            (Keys.F, "d"), # state 1
+            (Keys.F, "d"),  # state 1
             (Keys.F, "u"),
             (Keys.R, "d"),
             (Keys.R, "u"),
@@ -150,20 +151,25 @@ test_app_playlist = [
             (Keys.K, "d"),
             (Keys.K, "u"),
             (Keys.CAPS, "d"),
-            (Keys.F, "d"), # state 2
+            (Keys.F, "d"),  # state 2
             (Keys.F, "u"),
-            (Keys.T, "d"), # caps+t = Tab
+            (Keys.T, "d"),  # caps+t = Tab
             (Keys.T, "u"),
-            (Keys.CAPS, "u"), # prevent caps on up (otherwise would change the state)
-            (Keys.Z, "d"), # nothing (insert mode)
+            (Keys.CAPS, "u"),  # prevent caps on up (otherwise would change the state)
+            (Keys.Z, "d"),  # nothing (insert mode)
             (Keys.Z, "u"),
             (Keys.CAPS, "d"),
-            (Keys.CAPS, "u"), # state 1
-            (Keys.COMMA, "d"), # page up
+            (Keys.CAPS, "u"),  # state 1
+            (Keys.COMMA, "d"),  # page up
             (Keys.COMMA, "u"),
-            (Keys.COMMAND_EXIT, "d"),
+            (Keys.D, "d"), # first step d
+            (Keys.D, "u"),
+            (Keys.Z, "d"), # dz -> ctrl+f7,ctrl+f8 (evernote trick)
+            (Keys.Z, "u"),
+            (Keys.CAPS, "d"),
+            (Keys.BACKSPACE, "d"),  # caps+backspace - exit app
         ],
-        ["enter", "ctrl+z", "up,end,enter", "tab", "page up"],
+        ["enter", "ctrl+z", "up,end,enter", "tab", "page up", "ctrl+f7,ctrl+f8"],
     ),
 ]
 

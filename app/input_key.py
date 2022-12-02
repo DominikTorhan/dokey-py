@@ -76,7 +76,7 @@ class InputKey:
     @classmethod
     def from_string(cls, key: Keys) -> "InputKey":
         assert isinstance(key, Keys)
-        input_key = InputKey()
+        input_key = cls()
         input_key.key: Keys = key
         input_key.is_control = key == Keys.CTRL
         input_key.is_shift = key == Keys.SHIFT
