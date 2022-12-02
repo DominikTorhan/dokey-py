@@ -4,6 +4,13 @@ from enum import Enum
 
 class Keys(Enum):
 
+    WIN = 5
+    CTRL = 4
+    SHIFT = 3
+    ALT = 2
+    NONE = 0
+    CAPS = 9
+
     Q = 10
     W = 11
     E = 12
@@ -32,15 +39,6 @@ class Keys(Enum):
     B = 33
     N = 34
     M = 35
-    PERIOD = 7
-    COMMA = 6
-    QUESTION = 63
-    WIN = 5
-    CTRL = 4
-    SHIFT = 3
-    ALT = 2
-    NONE = 0
-    CAPS = 9
     ESC = 1
     ENTER = 50
     BACKSPACE = 51
@@ -57,6 +55,21 @@ class Keys(Enum):
     UP = 62
     SPACE = 63
     MENU = 64
+
+    PERIOD = 7  # .
+    COMMA = 6  # ,
+    MINUS = 65  # -
+    EQUAL = 66  # =
+    SQUARE_BRACKET_OPEN = 67  # [
+    SQUARE_BRACKET_CLOSE = 68  # ]
+    BACKSLASH = 69  # \
+    SLASH = 70  # /
+    QUOTE = 71  # '
+    SEMICOLON = 72
+    BACKTICK = 73 # `
+    APOSTROPHE = 74 # '
+
+    QUESTION = 63  # ?
 
     F1 = 81
     F2 = 82
@@ -199,9 +212,28 @@ keyboard_to_dokey_map = {
     "n": Keys.N,
     "m": Keys.M,
     ",": Keys.COMMA,
-    ".": Keys.PERIOD,
     "comma": Keys.COMMA,
+    ".": Keys.PERIOD,
     "period": Keys.PERIOD,
+    ";": Keys.SEMICOLON,
+    "semicolon": Keys.SEMICOLON,
+    "'": Keys.APOSTROPHE,
+    "apostrophe": Keys.APOSTROPHE,
+    "-": Keys.MINUS,
+    "minus": Keys.MINUS,
+    "=": Keys.EQUAL,
+    "equal": Keys.EQUAL,
+    "/": Keys.SLASH,
+    "slash": Keys.SLASH,
+    "\\": Keys.BACKSLASH,
+    "backslash": Keys.BACKSLASH,
+    "`": Keys.BACKTICK,
+    "backtick": Keys.BACKTICK,
+    "[": Keys.SQUARE_BRACKET_OPEN,
+    "square_bracket_open": Keys.SQUARE_BRACKET_OPEN,
+    "]": Keys.SQUARE_BRACKET_CLOSE,
+    "square_bracket_close": Keys.SQUARE_BRACKET_CLOSE,
+
 }
 
 
