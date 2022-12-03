@@ -1,4 +1,4 @@
-from typing import Dict
+from typing import Dict, List
 import yaml
 
 from app.enums import Keys, string_to_multi_keys
@@ -25,15 +25,19 @@ class Config:
         return config
 
     @staticmethod
-    def convert_dict(d: Dict[str,str]) -> Dict[Keys,Keys]:
+    def convert_dict(d: Dict[str, str]) -> Dict[Keys, Keys]:
         result = {}
         for key in d:
             result[Keys.from_string(key)] = string_to_multi_keys(d[key])
         return result
 
-    def try_get_two_key_send(self, firstStep: Keys, key: Keys) -> str:
-        keys: dict = self.two_steps.get(firstStep, {})
-        return keys.get(key, "")
+    def try_get_two_key_send(self, firstStep: Keys, key: Keys) -> List[Keys]:
+        keys_two_step: dict = self.two_steps.get(firstStep, {})
+        keys = keys_two_step.get(key)
+        if keys:
+            return keys
+        print(f"MISSING TWO STEP KEY for {firstStep} and {key}")
+        return []
 
-    def try_get_caps_send(self, key: Keys) -> str:
-        return self.caps.get(key, "")
+    def try_get_caps_send(self, key: Keys) -> List[Keys]:
+        return self.caps.get(key, [])

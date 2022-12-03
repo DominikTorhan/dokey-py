@@ -40,4 +40,7 @@ if __name__ == "__main__":
         keyboard_interface=keyboard_interface,
         tray_app_interface=tray_app_interface,
     )
-    app.main()
+    try:
+        app.main()
+    except:
+        stop_app()
