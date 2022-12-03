@@ -16,7 +16,7 @@ from app.key_processor import Result, Processor
 from app.config import Config
 from app.enums import Keys, keys_to_send
 from app.modificators import Modificators
-from main import App
+from main import App, KeyboardInterface
 
 
 CONFIG_PATH = "../app/config.yaml"
@@ -162,9 +162,9 @@ test_app_playlist = [
             (Keys.CAPS, "u"),  # state 1
             (Keys.COMMA, "d"),  # page up
             (Keys.COMMA, "u"),
-            (Keys.D, "d"), # first step d
+            (Keys.D, "d"),  # first step d
             (Keys.D, "u"),
-            (Keys.Z, "d"), # dz -> ctrl+f7,ctrl+f8 (evernote trick)
+            (Keys.Z, "d"),  # dz -> ctrl+f7,ctrl+f8 (evernote trick)
             (Keys.Z, "u"),
             (Keys.CAPS, "d"),
             (Keys.BACKSPACE, "d"),  # caps+backspace - exit app
@@ -192,7 +192,8 @@ def test_app():
             print(f"send {send} (expected: {expected})")
             assert send == expected
 
-        app = App(read_event, send, CONFIG_PATH)
+        ki = KeyboardInterface(wait_for_keyboard=read_event, send_keyboard_event=send)
+        app = App(CONFIG_PATH, ki)
         app.main()
 
     for test in test_app_playlist:
@@ -202,3 +203,4 @@ def test_app():
 if __name__ == "__main__":
     test_app()
     test_playlist()
+    print("ALL GOOD!!!")
