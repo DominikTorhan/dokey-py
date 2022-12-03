@@ -21,6 +21,7 @@ caps: # tigger with CapsLock. Used in 1 (normal) and 2 (insert) state
   g: shift+tab
   c: shift+f10 # Shift + F10 (context menu)
   v: ctrl+shift+v # Ctrl + Shift + v (paste without formatting)
+  b: menu # context menu key
   m: ctrl+tab
   comma: ctrl+shift+tab
 

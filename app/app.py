@@ -64,7 +64,7 @@ class App:
                     break
                 is_sending = True
                 prevent = result.prevent_key_process
-                if send:
+                if send and len(send) > 0:
                     send_keyboard = keys_to_send(send)
                     print(send, " -> ", send_keyboard)
                     self.keyboard_interface.send_keyboard_event(send_keyboard)
