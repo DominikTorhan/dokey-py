@@ -53,7 +53,6 @@ LETTER_OR_DIGIT = [
     Keys.F12,
     Keys.COMMA,
     Keys.PERIOD,
-    Keys.QUESTION,
 ]
 
 
@@ -75,13 +74,14 @@ class InputKey:
 
     @classmethod
     def from_string(cls, key: Keys) -> "InputKey":
-        assert isinstance(key, Keys)
+        if not isinstance(key, Keys):
+            assert False
         input_key = cls()
         input_key.key: Keys = key
-        input_key.is_control = key == Keys.CTRL
-        input_key.is_shift = key == Keys.SHIFT
-        input_key.is_alt = key == Keys.ALT
-        input_key.is_win = key == Keys.WIN
+        input_key.is_control = key == Keys.LEFT_CTRL or key == Keys.RIGHT_CTRL
+        input_key.is_shift = key == Keys.LEFT_SHIFT or key == Keys.RIGHT_SHIFT
+        input_key.is_alt = key == Keys.LEFT_ALT or key == Keys.RIGHT_ALT
+        input_key.is_win = key == Keys.LEFT_WIN
         input_key.is_caps = key == Keys.CAPS
         input_key.is_modif = (
             input_key.is_control

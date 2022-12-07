@@ -18,6 +18,8 @@ playlist:
   - {input: "1,,+ lshiftkey up", output: "1,, nil"}
   - {input: "1,,+ lshiftkey down", output: "1,,+ nil"}
   - {input: "2,,+ lshiftkey up", output: "2,, nil"}
+  - {input: "1,, win down", output: "1,,w nil"}
+  - {input: "1,,w win up", output: "1,, nil"}
   # status changed (next)
   - {input: "0,,c f down", output: "1,,c* nil PREV"}
   - {input: "1,,c f down", output: "2,,c* nil PREV"}

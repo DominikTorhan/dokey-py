@@ -1,5 +1,5 @@
-from app.app import App, KeyboardInterface, TrayAppInterface
-from os_keyboard import read_event, keyboard_send
+from app.app import App, TrayAppInterface, ListenerABC
+from os_pynput import PynpytListener
 import pystray
 from PIL import Image
 from pathlib import Path
@@ -31,13 +31,11 @@ def start_tray_app():
 if __name__ == "__main__":
     config_path = str(root / "app" / "config.yaml")
     set_icon, stop_app = start_tray_app()
-    keyboard_interface = KeyboardInterface(
-        wait_for_keyboard=read_event, send_keyboard_event=keyboard_send
-    )
+    listener = PynpytListener()
     tray_app_interface = TrayAppInterface(set_icon=set_icon, stop=stop_app)
     app = App(
         config_path=config_path,
-        keyboard_interface=keyboard_interface,
+        listener=listener,
         tray_app_interface=tray_app_interface,
     )
     try:

@@ -16,7 +16,7 @@ from app.key_processor import Result, Processor
 from app.config import Config
 from app.enums import Keys, keys_to_send
 from app.modificators import Modificators
-from main import App, KeyboardInterface
+from main import App, ListenerABC
 
 
 CONFIG_PATH = "../app/config.yaml"
@@ -174,26 +174,47 @@ test_app_playlist = [
 ]
 
 
-def test_app():
-    def test_run(events, sends):
-        gen_read = iter(events)
-        gen_send = iter(sends)
+class TestListener(ListenerABC):
 
-        def read_event():
+    def __init__(self, events, sends):
+        self.events = events
+        self.sends = sends
+    def run(self, func):
+        gen_read = iter(self.events)
+        gen_send = iter(self.sends)
+        while(True):
             key, up = next(gen_read)
             is_up = up == "u"
-            return key, is_up, send_pass
+            send, prev = func(key, is_up)
+            if send and len(send) > 0:
+                if Keys.COMMAND_EXIT in send:
+                    break
+                expected = next(gen_send)
+                send_keyboard = keys_to_send(send)
+                print(f"send {send_keyboard} (expected: {expected})")
+                assert send_keyboard == expected
 
-        def send_pass():
-            print("send_pass!")
 
-        def send(send):
-            expected = next(gen_send)
-            print(f"send {send} (expected: {expected})")
-            assert send == expected
+def test_app():
+    def test_run(events, sends):
+        listener = TestListener(events, sends)
+        # gen_read = iter(events)
+        # gen_send = iter(sends)
 
-        ki = KeyboardInterface(wait_for_keyboard=read_event, send_keyboard_event=send)
-        app = App(CONFIG_PATH, ki)
+        # def read_event():
+        #     key, up = next(gen_read)
+        #     is_up = up == "u"
+        #     return key, is_up, send_pass
+        #
+        # def send_pass():
+        #     print("send_pass!")
+        #
+        # def send(send):
+        #     expected = next(gen_send)
+        #     print(f"send {send} (expected: {expected})")
+        #     assert send == expected
+
+        app = App(CONFIG_PATH, listener)
         app.main()
 
     for test in test_app_playlist:

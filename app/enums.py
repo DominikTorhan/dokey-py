@@ -3,97 +3,106 @@ from enum import Enum
 
 
 class Keys(Enum):
+    """
 
-    WIN = 5
-    CTRL = 4
-    SHIFT = 3
-    ALT = 2
+    matches to win_32 VK_CODE
+
+    """
+
     NONE = 0
-    CAPS = 9
+    BACKSPACE = 8
+    TAB = 9
+    ENTER = 13  # also numpad enter
 
-    Q = 10
-    W = 11
-    E = 12
-    R = 13
-    T = 14
-    Y = 15
-    U = 16
-    I = 17
-    O = 18
-    P = 19
+    CAPS = 20
+    ESC = 27
 
-    A = 20
-    S = 21
-    D = 22
-    F = 23
-    G = 24
-    H = 25
-    J = 26
-    K = 27
-    L = 28
+    SPACE = 32
+    PAGE_UP = 33
+    PAGE_DOWN = 34
+    END = 35
+    HOME = 36
+    LEFT = 37
+    UP = 38
+    RIGHT = 39
+    DOWN = 40
 
-    Z = 29
-    X = 30
-    C = 31
-    V = 32
-    B = 33
-    N = 34
-    M = 35
-    ESC = 1
-    ENTER = 50
-    BACKSPACE = 51
-    INSERT = 52
-    HOME = 53
-    PAGE_UP = 54
-    PAGE_DOWN = 55
-    DELETE = 56
-    END = 57
-    TAB = 58
-    LEFT = 59
-    RIGHT = 60
-    DOWN = 61
-    UP = 62
-    SPACE = 63
-    MENU = 64
+    INSERT = 45
+    DELETE = 46
 
-    PERIOD = 7  # .
-    COMMA = 6  # ,
-    MINUS = 65  # -
-    EQUAL = 66  # =
-    SQUARE_BRACKET_OPEN = 67  # [
-    SQUARE_BRACKET_CLOSE = 68  # ]
-    BACKSLASH = 69  # \
-    SLASH = 70  # /
-    QUOTE = 71  # '
-    SEMICOLON = 72
-    BACKTICK = 73 # `
-    APOSTROPHE = 74 # '
+    D0 = 48
+    D1 = 49
+    D2 = 50
+    D3 = 51
+    D4 = 52
+    D5 = 53
+    D6 = 54
+    D7 = 55
+    D8 = 56
+    D9 = 57
 
-    QUESTION = 63  # ?
+    A = 65  # 0x41
+    B = 66
+    C = 67
+    D = 68
+    E = 69
+    F = 70
+    G = 71
+    H = 72
+    I = 73
+    J = 74
+    K = 75
+    L = 76
+    M = 77
+    N = 78
+    O = 79
+    P = 80
+    Q = 81
+    R = 82
+    S = 83
+    T = 84
+    U = 85
+    V = 86
+    W = 87
+    X = 88
+    Y = 89
+    Z = 90
 
-    F1 = 81
-    F2 = 82
-    F3 = 83
-    F4 = 84
-    F5 = 85
-    F6 = 86
-    F7 = 87
-    F8 = 88
-    F9 = 89
-    F10 = 90
-    F11 = 91
-    F12 = 92
+    LEFT_WIN = 91
+    MENU = 93
 
-    D0 = 100
-    D1 = 101
-    D2 = 102
-    D3 = 103
-    D4 = 104
-    D5 = 105
-    D6 = 106
-    D7 = 107
-    D8 = 108
-    D9 = 109
+    F1 = 112
+    F2 = 113
+    F3 = 114
+    F4 = 115
+    F5 = 116
+    F6 = 117
+    F7 = 118
+    F8 = 119
+    F9 = 120
+    F10 = 121
+    F11 = 122
+    F12 = 123
+
+    LEFT_SHIFT = 160
+    RIGHT_SHIFT = 161
+    LEFT_CTRL = 162
+    RIGHT_CTRL = 163
+    LEFT_ALT = 164
+    RIGHT_ALT = 165
+
+    SEMICOLON = 186  # ; oem_1
+    EQUAL = 187  # =
+    COMMA = 188  # ,
+    MINUS = 189  # -
+    PERIOD = 190  # .
+    SLASH = 191  # / oem_2
+    BACKTICK = 192  # ` oem_3
+
+    SQUARE_BRACKET_OPEN = 219  # [ oem_4
+    BACKSLASH = 220  # \ oem_5
+    SQUARE_BRACKET_CLOSE = 221  # ] oem_6
+    APOSTROPHE = 222  # ' oem_7
 
     # command
     COMMAND_EXIT = -1
@@ -117,23 +126,35 @@ class Keys(Enum):
         raise ValueError
 
     def is_modif(self):
-        return self in [Keys.CTRL, Keys.ALT, Keys.SHIFT]  # send no win, caps
+        modifs = [
+            Keys.LEFT_CTRL,
+            Keys.RIGHT_CTRL,
+            Keys.RIGHT_ALT,
+            Keys.LEFT_ALT,
+            Keys.LEFT_SHIFT,
+            Keys.RIGHT_SHIFT,
+        ]
+        return self in modifs  # send no win, caps
 
 
 keyboard_to_dokey_map = {
+
+    "COMMAND_EXIT": Keys.COMMAND_EXIT,
+
     "caps lock": Keys.CAPS,
     "capital": Keys.CAPS,
     # mod
-    "alt": Keys.ALT,
-    "alt gr": Keys.ALT,
-    "right alt": Keys.ALT,
-    "shift": Keys.SHIFT,
-    "right shift": Keys.SHIFT,
-    "lshiftkey": Keys.SHIFT,
-    "ctrl": Keys.CTRL,
-    "right ctrl": Keys.CTRL,
-    "windows": Keys.WIN,
-    "left windows": Keys.WIN,
+    "alt": Keys.LEFT_ALT,
+    "alt gr": Keys.RIGHT_ALT,
+    "right alt": Keys.RIGHT_ALT,
+    "shift": Keys.LEFT_SHIFT,
+    "right shift": Keys.RIGHT_SHIFT,
+    "lshiftkey": Keys.LEFT_SHIFT,
+    "ctrl": Keys.LEFT_CTRL,
+    "right ctrl": Keys.RIGHT_CTRL,
+    "windows": Keys.LEFT_WIN,
+    "left windows": Keys.LEFT_WIN,
+    "win": Keys.LEFT_WIN,
     # com
     "esc": Keys.ESC,
     "escape": Keys.ESC,
@@ -233,7 +254,6 @@ keyboard_to_dokey_map = {
     "square_bracket_open": Keys.SQUARE_BRACKET_OPEN,
     "]": Keys.SQUARE_BRACKET_CLOSE,
     "square_bracket_close": Keys.SQUARE_BRACKET_CLOSE,
-
 }
 
 
