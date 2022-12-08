@@ -7,12 +7,19 @@ class Keys(Enum):
 
     matches to win_32 VK_CODE
 
+    http://pinvoke.net/default.aspx/user32.GetKeyboardState
     """
 
     NONE = 0
     BACKSPACE = 8
     TAB = 9
     ENTER = 13  # also numpad enter
+
+    SHIFT = 16  # shift 0x10
+    CONTROL = 17  # ctrl 0x11
+    ALT = 18  # menu (
+    PAUSE = 19
+    CAPITAL = 20
 
     CAPS = 20
     ESC = 27
@@ -69,6 +76,7 @@ class Keys(Enum):
     Z = 90
 
     LEFT_WIN = 91
+    RIGHT_WIN = 92
     MENU = 93
 
     F1 = 112
@@ -138,9 +146,7 @@ class Keys(Enum):
 
 
 keyboard_to_dokey_map = {
-
     "COMMAND_EXIT": Keys.COMMAND_EXIT,
-
     "caps lock": Keys.CAPS,
     "capital": Keys.CAPS,
     # mod
@@ -255,6 +261,11 @@ keyboard_to_dokey_map = {
     "]": Keys.SQUARE_BRACKET_CLOSE,
     "square_bracket_close": Keys.SQUARE_BRACKET_CLOSE,
 }
+
+control_keys = [Keys.CONTROL, Keys.LEFT_CTRL, Keys.RIGHT_CTRL]
+shift_keys = [Keys.SHIFT, Keys.LEFT_SHIFT, Keys.RIGHT_SHIFT]
+alt_keys = [Keys.ALT, Keys.LEFT_ALT, Keys.RIGHT_ALT]
+win_keys = [Keys.LEFT_WIN, Keys.RIGHT_WIN]
 
 
 def string_to_multi_keys(s: str) -> []:
