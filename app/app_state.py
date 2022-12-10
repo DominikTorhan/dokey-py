@@ -20,7 +20,7 @@ def get_next_state(state: int) -> int:
 
 class AppState:
     def __init__(self):
-        self.state: int = OFF
+        self.state: int = NORMAL
         self.first_step: Keys = Keys.NONE
         self.prevent_esc_on_caps_up: bool = False
         self.modificators: Modificators = Modificators()

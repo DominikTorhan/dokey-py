@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from typing import List
-from app.app_state import AppState
+from app.app_state import AppState, OFF, NORMAL
 from app.key_processor import Processor, Result
 from app.config import Config
 from app.input_key import InputKey

@@ -11,17 +11,24 @@
 
 caps: # tigger with CapsLock. Used in 1 (normal) and 2 (insert) state
   e: esc
-  h: backspace
-  y: ctrl+backspace
-  l: del
-  d: del
-  j: enter
   r: enter
   t: tab
+  d: del
+  # f reserved to change status
   g: shift+tab
   c: shift+f10 # Shift + F10 (context menu)
   v: ctrl+shift+v # Ctrl + Shift + v (paste without formatting)
   b: menu # context menu key
+  # right hand
+  y: ctrl+backspace
+  # u
+  # i
+  # o
+  h: backspace
+  j: enter
+  # k
+  l: del
+  n: ctrl+enter # run code
   m: ctrl+tab
   comma: ctrl+shift+tab
 
@@ -62,6 +69,7 @@ f: # first step f
 i: # first step i
   j: end, enter # Insert line below
   k: up, end, enter # Insert line above
+  c: ctrl+/ # comment / uncomment code in pycharm
 
 
 d: # first step d

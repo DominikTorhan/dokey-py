@@ -120,10 +120,10 @@ def test_playlist():
 test_app_playlist = [
     (
         [
-            (Keys.CAPS, "d"),
-            (Keys.F, "d"),
-            (Keys.F, "u"),
-            (Keys.CAPS, "u"),
+            # (Keys.CAPS, "d"),
+            # (Keys.F, "d"),
+            # (Keys.F, "u"),
+            # (Keys.CAPS, "u"),
             (Keys.J, "d"),
             (Keys.CAPS, "d"),
             (Keys.F, "d"),
@@ -138,9 +138,10 @@ test_app_playlist = [
     ),
     (
         [
+            # (Keys.CAPS, "d"),
+            # (Keys.F, "d"),  # state 1
+            # (Keys.F, "u"),
             (Keys.CAPS, "d"),
-            (Keys.F, "d"),  # state 1
-            (Keys.F, "u"),
             (Keys.R, "d"),
             (Keys.R, "u"),
             (Keys.CAPS, "u"),

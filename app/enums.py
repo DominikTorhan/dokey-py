@@ -17,7 +17,7 @@ class Keys(Enum):
 
     SHIFT = 16  # shift 0x10
     CONTROL = 17  # ctrl 0x11
-    ALT = 18  # menu (
+    ALT = 18  # aka menu
     PAUSE = 19
     CAPS = 20
 

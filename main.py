@@ -1,4 +1,5 @@
 from app.app import App, TrayAppInterface, ListenerABC
+from app.app_state import NORMAL, OFF, INSERT
 from os_pynput import PynpytListener
 import pystray
 from PIL import Image
@@ -8,20 +9,22 @@ root = Path(__file__).parent
 TRAY_ICON_OFF = str(root / "assets" / "off.ico")
 TRAY_ICON_NORMAL = str(root / "assets" / "normal.ico")
 TRAY_ICON_INSERT = str(root / "assets" / "insert.ico")
+
+STARTING_STATE = NORMAL
 # TrayApp
 def start_tray_app():
     def get_icon(state):
         path = TRAY_ICON_OFF
-        if state == 1:
+        if state == NORMAL:
             path = TRAY_ICON_NORMAL
-        if state == 2:
+        if state == INSERT:
             path = TRAY_ICON_INSERT
         return Image.open(path)
 
     def set_icon(state):
         icon.icon = get_icon(state)
 
-    icon = pystray.Icon("Dokey-py", icon=get_icon(0))
+    icon = pystray.Icon("Dokey-py", icon=get_icon(STARTING_STATE))
     icon.run_detached()
 
     return set_icon, icon.stop

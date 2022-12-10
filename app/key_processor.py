@@ -35,7 +35,7 @@ class Processor:
         if self.input_key.is_modif:
             return self.process_modificators()
 
-        # try update modifiers by OS modifiers
+        # try update modifiers by OS modifiers. only when non modifier is pressed.
         self.try_update_modifiers_by_os(modifs_os)
 
         if self.is_key_up:
