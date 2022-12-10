@@ -198,21 +198,6 @@ class TestListener(ListenerABC):
 def test_app():
     def test_run(events, sends):
         listener = TestListener(events, sends)
-        # gen_read = iter(events)
-        # gen_send = iter(sends)
-
-        # def read_event():
-        #     key, up = next(gen_read)
-        #     is_up = up == "u"
-        #     return key, is_up, send_pass
-        #
-        # def send_pass():
-        #     print("send_pass!")
-        #
-        # def send(send):
-        #     expected = next(gen_send)
-        #     print(f"send {send} (expected: {expected})")
-        #     assert send == expected
 
         app = App(CONFIG_PATH, listener)
         app.main()

@@ -1,6 +1,7 @@
 from typing import List
 from pynput import keyboard
 from app.app import ListenerABC
+from app.modificators import Modificators
 from app.enums import Keys, shift_keys, control_keys, alt_keys, win_keys
 from pynput.keyboard import Key, Controller, KeyCode
 import time
@@ -34,11 +35,14 @@ def get_modif_state():
     def is_modif_active(keys: List[Keys]):
         return any(user32_dll.GetAsyncKeyState(key.value) for key in keys)
 
-    c = is_modif_active(control_keys)
-    s = is_modif_active(shift_keys)
-    a = is_modif_active(alt_keys)
-    w = is_modif_active(win_keys)
-    print("SYS STATE", c, s, a, w)
+    modifs = Modificators()
+    modifs.control = is_modif_active(control_keys)
+    modifs.shift = is_modif_active(shift_keys)
+    modifs.alt = is_modif_active(alt_keys)
+    modifs.win = is_modif_active(win_keys)
+    modifs.caps = is_modif_active([Keys.CAPS])  # not sure if that works
+    print(f"os modifs {repr(modifs)}")
+    return modifs
 
 
 class PynpytListener(ListenerABC):
@@ -55,23 +59,24 @@ class PynpytListener(ListenerABC):
         with self.listener as ml:
             ml.join()
 
-    def win32_event_filter(self, msg, data):  # happens before "on_press", "on_release"
+    def win32_event_filter(
+        self, msg, data
+    ) -> bool:  # happens before "on_press", "on_release"
         """
         msg: 256 keydown, 257, keyup, 260 syskeydown, 261 up
         """
-        # print("SYS", msg, data)
         if self.is_sending:
             print(f"Is sending, prevent! Suppress state: {self.listener._suppress}")
             return True
         self.listener._suppress = False
         if is_capslock_on():
             return True
-        get_modif_state()
+        modifs_os = get_modif_state()
         is_up = msg == 257 or msg == 261
         is_up_str = "up" if is_up else "down"
         key = Keys(data.vkCode)
-        print(key, is_up_str, msg, "vkcode: ", data.vkCode)
-        send, prev = self.func(key, is_up)
+        print(f"win32_event {key}(vk{data.vkCode}) {is_up_str} ")
+        send, prev = self.func(key, is_up, modifs_os)
         if send:
             if Keys.COMMAND_EXIT in send:
                 self.listener.stop()

@@ -5,6 +5,7 @@ from app.key_processor import Processor, Result
 from app.config import Config
 from app.input_key import InputKey
 from app.enums import Keys, keys_to_send
+from app.modificators import Modificators
 
 
 class TrayAppInterface:
@@ -12,8 +13,8 @@ class TrayAppInterface:
         self.set_icon = set_icon
         self.stop = stop
 
-class ListenerABC(ABC):
 
+class ListenerABC(ABC):
     @abstractmethod
     def run(self, func):
         # starts listener
@@ -45,21 +46,21 @@ class App:
 
         print("Terminate!")
 
-    def process(self, key: Keys, is_up: bool) -> Result:
+    def process(self, key: Keys, is_up: bool, modifs_os: Modificators = None) -> Result:
         input_key = InputKey.from_string(key)
         processor = Processor()
         processor.config = self.config
         processor.app_state = self.app_state
         processor.input_key = input_key
         processor.is_key_up = is_up
-        return processor.process()
+        return processor.process(modifs_os=modifs_os)
 
-    def iteration(self, key, is_up):
-        #key, is_up, pass_func = self.keyboard_interface.wait_for_keyboard()
+    def iteration(self, key: Keys, is_up: bool, modifs_os: Modificators = None):
+        # key, is_up, pass_func = self.keyboard_interface.wait_for_keyboard()
         # if self.is_sending: # TODO: send in implementation?
         #     return None, False
         print("new event:", key, "is_up: ", is_up)
-        result = self.process(key, is_up)
+        result = self.process(key, is_up, modifs_os)
         prevent = False
         if result:
             state_changed = self.app_state.state != result.app_state.state
@@ -72,17 +73,16 @@ class App:
                 print("EXEC EXIT COMMAND!")
                 if self.tray_app_interface:
                     self.tray_app_interface.stop()
-                return send, True # TODO: EXit
+                return send, True  # TODO: EXit
             is_sending = True
             prevent = result.prevent_key_process
             if send and len(send) > 0:
                 send_keyboard = keys_to_send(send)
                 print(send, " -> ", send_keyboard)
-                # if these is send, there will be always PREV
+                # if there is send, there will be always PREV
                 return send, True
-                #self.keyboard_interface.send_keyboard_event(send_keyboard)
+                # self.keyboard_interface.send_keyboard_event(send_keyboard)
         is_sending = False
         # if not prevent:
         #     pass_func()
         return None, prevent
-

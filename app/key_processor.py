@@ -15,6 +15,7 @@ class Result:
     def __repr__(self):
         return f"Send: {self.send} AppState: {self.app_state} Prev: {self.prevent_key_process}"
 
+
 class Processor:
     def __init__(self):
         self.config: Config = None
@@ -25,7 +26,7 @@ class Processor:
     def __repr__(self):
         return f"AppState: {repr(self.app_state)}, InputKey: {repr(self.input_key)} isUp: {self.is_key_up}"
 
-    def process(self) -> Result:
+    def process(self, modifs_os: Modificators = None) -> Result:
         assert isinstance(self.app_state.first_step, Keys)
         # process CAPSLOCK
         if self.input_key.is_caps:
@@ -33,6 +34,9 @@ class Processor:
         # process Modificators
         if self.input_key.is_modif:
             return self.process_modificators()
+
+        # try update modifiers by OS modifiers
+        self.try_update_modifiers_by_os(modifs_os)
 
         if self.is_key_up:
             return self.create_result_with_app_state(self.app_state, [], False)
@@ -140,7 +144,6 @@ class Processor:
         if self.app_state.modificators.caps or self.app_state.modificators.win:
             return None
 
-
         if self.app_state.first_step == Keys.NONE:
             return None
 
@@ -177,7 +180,12 @@ class Processor:
         if not send:
             return None
         result = self.create_result(
-            self.app_state.state, Keys.NONE, True, self.app_state.modificators, send, True
+            self.app_state.state,
+            Keys.NONE,
+            True,
+            self.app_state.modificators,
+            send,
+            True,
         )
         return result
 
@@ -234,10 +242,27 @@ class Processor:
         modificators.alt = alt
         modificators.win = win
         modificators.caps = caps
+
         return modificators
 
     def try_process_command_key(self):
         if not self.app_state.modificators.caps:
             return None
-        if self.input_key.key == Keys.BACKSPACE:# TODO command to config
-            return self.create_result_with_app_state(self.app_state, [Keys.COMMAND_EXIT], True)
+        if self.input_key.key == Keys.BACKSPACE:  # TODO command to config
+            return self.create_result_with_app_state(
+                self.app_state, [Keys.COMMAND_EXIT], True
+            )
+
+    def try_update_modifiers_by_os(self, modifs_os: Modificators):
+        if not modifs_os:
+            return
+
+        if not modifs_os.win and self.app_state.modificators.win:
+            print("WIN OFF by OS")  # for windows lock win+l issue
+            self.app_state.modificators.win = False
+        if not modifs_os.control and self.app_state.modificators.control:
+            self.app_state.modificators.control = False
+        if not modifs_os.shift and self.app_state.modificators.shift:
+            self.app_state.modificators.shift = False
+        if not modifs_os.alt and self.app_state.modificators.alt:
+            self.app_state.modificators.alt = False

@@ -19,9 +19,8 @@ class Keys(Enum):
     CONTROL = 17  # ctrl 0x11
     ALT = 18  # menu (
     PAUSE = 19
-    CAPITAL = 20
-
     CAPS = 20
+
     ESC = 27
 
     SPACE = 32
