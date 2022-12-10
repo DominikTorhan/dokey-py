@@ -1,3 +1,5 @@
+import subprocess
+import os
 from abc import ABC, abstractmethod
 from typing import List
 from app.app_state import AppState, OFF, NORMAL
@@ -74,9 +76,13 @@ class App:
                 if self.tray_app_interface:
                     self.tray_app_interface.stop()
                 return send, True  # TODO: EXit
-            is_sending = True
             prevent = result.prevent_key_process
-            if send and len(send) > 0:
+            is_sending = True
+            if result.cmd:
+                cmd = result.cmd
+                print(f"EXEC {cmd}")
+                os.popen(cmd)  # popen for proper thread/subprocess
+            elif send and len(send) > 0:
                 send_keyboard = keys_to_send(send)
                 print(send, " -> ", send_keyboard)
                 # if there is send, there will be always PREV

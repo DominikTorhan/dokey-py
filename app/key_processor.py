@@ -10,6 +10,7 @@ class Result:
     def __init__(self):
         self.app_state: AppState = None
         self.send: List[Keys] = []
+        self.cmd = ""
         self.prevent_key_process: bool = False
 
     def __repr__(self):
@@ -150,6 +151,11 @@ class Processor:
         send = self.config.try_get_two_key_send(
             self.app_state.first_step, self.input_key.key
         )
+        cmd = ""
+        if not send or send == [None]:
+            cmd = self.config.try_get_two_key_command(
+                self.app_state.first_step, self.input_key.key
+            )
         result = self.create_result(
             self.app_state.state,
             Keys.NONE,
@@ -157,6 +163,7 @@ class Processor:
             self.app_state.modificators,
             send,
             True,
+            cmd=cmd
         )
         return result
 
@@ -197,6 +204,7 @@ class Processor:
         modificators,
         send: List[Keys],
         prevent_key_process,
+        cmd: str = "",
     ) -> Result:
         app_state = AppState()
         app_state.state = state
@@ -207,6 +215,7 @@ class Processor:
         result.app_state = app_state
         result.send = send
         result.prevent_key_process = prevent_key_process
+        result.cmd = cmd
         return result
 
     def create_result_with_app_state(
