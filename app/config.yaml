@@ -410,6 +410,3 @@ b:
   square_bracket_open: ctrl+alt+shift+[
   square_bracket_close: ctrl+alt+shift+]
   backslash: ctrl+alt+shift+\
-
-a:
-  b: __command__<"C:\Program Files (x86)\KeePass Password Safe 2\KeePass.exe">

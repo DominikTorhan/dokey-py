@@ -1,14 +1,4 @@
-# //Test strategy:
-# //	Config
-# //	AppState
-# //	KeyEvent (key and isUp)
-# //	Result (AppState, send, preventKeyProcess)
-#
-# //everything in two strings (Input and Output):
-# //Input:{appState} {key} {isUp} Output:{appState} {send} {preventKeyProcess}
-# //		0,,c f down					   1,,c* ? ?
-# //		1,f,^ p up					   1,,^ ? ?
-#
+from pathlib import Path
 import yaml
 from app.input_key import InputKey
 from app.app_state import AppState
@@ -18,8 +8,9 @@ from app.enums import Keys, keys_to_send
 from app.modificators import Modificators
 from main import App, ListenerABC
 
+CONFIG_PATH = Path(__file__).parent.parent / "app" / "config.yaml"
+PLAYLIST_PATH = Path(__file__).parent / "test_playlist.yaml"
 
-CONFIG_PATH = "../app/config.yaml"
 
 
 def manage_input(string: str) -> (AppState, str, bool):
@@ -75,8 +66,7 @@ class TestRun:
 
 
 def read_playlist() -> list:
-    path = "test_playlist.yaml"
-    with open(path, "r") as f:
+    with open(PLAYLIST_PATH, "r") as f:
         playlist_data: dict = yaml.safe_load(f)
 
     return playlist_data["playlist"]
@@ -207,7 +197,10 @@ def test_app():
         test_run(test[0], test[1])
 
 
-if __name__ == "__main__":
+def run_tests():
     test_app()
     test_playlist()
     print("ALL GOOD!!!")
+
+if __name__ == "__main__":
+    run_tests()

@@ -1,5 +1,7 @@
-from typing import Dict, List
+import os
+from typing import Dict, List, Any, Union
 import yaml
+from pathlib import Path
 
 from app.enums import Keys, string_to_multi_keys
 
@@ -13,7 +15,7 @@ class Config:
         self.two_steps_commands = {}
 
     @classmethod
-    def from_file(cls, path: str = "config.yaml"):
+    def from_file(cls, path: Union[str, Path] = "config.yaml"):
         config = cls()
         with open(path, "r") as f:
             config_data: dict = yaml.safe_load(f)
@@ -27,7 +29,21 @@ class Config:
         for ts in config_data:
             dct[Keys.from_string(ts)] = config.convert_dict_commands(config_data[ts])
         config.two_steps_commands = dct
+        config.try_load_users_config(path)
         return config
+
+    def try_load_users_config(self, path):
+        user_config = Path(path).parent / "user_config.yaml"
+        if not os.path.exists(user_config):
+            return
+        with open(user_config, "r") as f:
+            config_data: dict = yaml.safe_load(f)
+        dct = {}
+        for ts in config_data:
+            dct[Keys.from_string(ts)] = self.convert_dict_commands(config_data[ts])
+        # TODO: fix override
+        self.two_steps_commands.update(dct)
+
 
     @staticmethod
     def convert_dict(d: Dict[str, str]) -> Dict[Keys, Keys]:
@@ -60,9 +76,11 @@ class Config:
     def convert_dict_commands(d: Dict[str, str]) -> Dict[Keys, str]:
         result = {}
 
+        # TODO: fix that
         def parse_command(str) -> str:
             str = str.replace("__command__", "").lstrip("<").rstrip(">")
-            str = fr'{str}'
+            if "C:" in str:
+                str = fr'{str}'
             return str
 
         for key in d:
