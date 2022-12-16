@@ -15,7 +15,7 @@ PLAYLIST_PATH = Path(__file__).parent / "test_playlist.yaml"
 
 
 
-class TestStringMethods(unittest.TestCase):
+class TestPlaylist(unittest.TestCase):
     def manage_input(self, string: str) -> (AppState, str, bool):
         strs = string.split()
         app_state = self.app_state_from_string(strs[0])
