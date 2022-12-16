@@ -68,6 +68,7 @@ playlist:
   - {input: "1,, x down", output: "1,, ctrl+x PREV"}
   - {input: "1,, c down", output: "1,, ctrl+c PREV"}
   - {input: "1,, v down", output: "1,, ctrl+v PREV"}
+  - {input: "1,, d3 down", output: "None"} # missing send, num 3 in normal mode
   # single step, press first step
   - {input: "1,, f down", output: "1,f, nil PREV"}
   - {input: "1,, q down", output: "1,q, nil PREV"}

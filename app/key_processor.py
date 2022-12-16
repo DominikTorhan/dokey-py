@@ -1,9 +1,21 @@
 from typing import List
-from app.app_state import AppState, OFF, NORMAL, INSERT, get_next_state, get_prev_state
+from app.app_state import AppState, OFF, NORMAL, INSERT
 from app.input_key import InputKey
 from app.config import Config
 from app.modificators import Modificators
 from app.enums import Keys
+
+
+def get_prev_state(state: int) -> int:
+    if state == INSERT or state == NORMAL:
+        return NORMAL
+    return OFF
+
+
+def get_next_state(state: int) -> int:
+    if state == INSERT or state == NORMAL:
+        return INSERT
+    return NORMAL
 
 
 class Result:
@@ -40,12 +52,12 @@ class Processor:
         self.try_update_modifiers_by_os(modifs_os)
 
         if self.is_key_up:
-            return self.create_result_with_app_state(self.app_state, [], False)
+            return self.create_result_with_app_state(self.app_state)
 
         # stateChange
         app_state = self.try_process_state_change()
         if app_state is not None:
-            return self.create_result_with_app_state(app_state, [], True)
+            return self.create_result_with_app_state(app_state, True)
 
         # single step
         result = self.try_process_single_step()
@@ -105,7 +117,7 @@ class Processor:
             prevent_esc_on_caps_up = False
         modificators = self.get_next_modificators()  # only for CAPS?!
         result = self.create_result(
-            state, Keys.NONE, prevent_esc_on_caps_up, modificators, [], True
+            state, Keys.NONE, prevent_esc_on_caps_up, modificators, True
         )
         return result
 
@@ -116,8 +128,6 @@ class Processor:
             self.app_state.first_step,
             self.app_state.prevent_esc_on_caps_up,
             modificators,
-            [],
-            False,
         )
         return result
 
@@ -137,7 +147,7 @@ class Processor:
         send = self.config.common.get(self.input_key.key)
         if not send:
             return None
-        return self.create_result_with_app_state(self.app_state, send, True)
+        return self.create_result_with_app_state(self.app_state, True, send)
 
     def try_process_two_step(self) -> Result:
         if self.app_state.state != NORMAL:
@@ -161,9 +171,9 @@ class Processor:
             Keys.NONE,
             self.app_state.prevent_esc_on_caps_up,
             self.app_state.modificators,
-            send,
             True,
-            cmd=cmd
+            send,
+            cmd=cmd,
         )
         return result
 
@@ -175,7 +185,6 @@ class Processor:
             self.input_key.key,
             self.app_state.prevent_esc_on_caps_up,
             self.app_state.modificators,
-            [],
             self.input_key.is_letter_or_digit,
         )
         return result
@@ -191,8 +200,8 @@ class Processor:
             Keys.NONE,
             True,
             self.app_state.modificators,
-            send,
             True,
+            send,
         )
         return result
 
@@ -202,8 +211,8 @@ class Processor:
         first_step: Keys,
         prevent_esc_on_caps_up,
         modificators,
-        send: List[Keys],
-        prevent_key_process,
+        prevent_key_process=False,
+        send: List[Keys]=[],
         cmd: str = "",
     ) -> Result:
         app_state = AppState()
@@ -219,7 +228,7 @@ class Processor:
         return result
 
     def create_result_with_app_state(
-        self, app_state, send: List[Keys], prevent_key_process
+        self, app_state, prevent_key_process=False, send: List[Keys] = []
     ) -> Result:
         result = Result()
         result.app_state = app_state
@@ -259,7 +268,7 @@ class Processor:
             return None
         if self.input_key.key == Keys.BACKSPACE:  # TODO command to config
             return self.create_result_with_app_state(
-                self.app_state, [Keys.COMMAND_EXIT], True
+                self.app_state, True, [Keys.COMMAND_EXIT]
             )
 
     def try_update_modifiers_by_os(self, modifs_os: Modificators):
