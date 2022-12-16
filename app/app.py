@@ -41,11 +41,6 @@ class App:
 
         print("start main loop")
         self.listener.run(self.iteration)
-        # main loop
-        # while True:
-        #     if not self.iteration():
-        #         break
-
         print("Terminate!")
 
     def process(self, key: Keys, is_up: bool, modifs_os: Modificators = None) -> Result:
@@ -89,6 +84,4 @@ class App:
                 return send, True
                 # self.keyboard_interface.send_keyboard_event(send_keyboard)
         is_sending = False
-        # if not prevent:
-        #     pass_func()
         return None, prevent

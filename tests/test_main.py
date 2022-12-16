@@ -198,7 +198,7 @@ def test_app():
 
 
 def run_tests():
-    test_app()
+    # test_app()
     test_playlist()
     print("ALL GOOD!!!")
 

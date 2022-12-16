@@ -5,19 +5,6 @@ OFF: int = 0
 NORMAL: int = 1
 INSERT: int = 2
 
-
-def get_prev_state(state: int) -> int:
-    if state == INSERT or state == NORMAL:
-        return NORMAL
-    return OFF
-
-
-def get_next_state(state: int) -> int:
-    if state == INSERT or state == NORMAL:
-        return INSERT
-    return NORMAL
-
-
 class AppState:
     def __init__(self):
         self.state: int = NORMAL
