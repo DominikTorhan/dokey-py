@@ -1,9 +1,13 @@
 import os
+import logging
 from typing import Dict, List, Any, Union
 import yaml
 from pathlib import Path
 
 from app.keys import Keys, string_to_multi_keys
+
+
+logger = logging.getLogger(__name__)
 
 
 class Config:
@@ -44,7 +48,6 @@ class Config:
         # TODO: fix override
         self.two_steps_commands.update(dct)
 
-
     @staticmethod
     def convert_dict(d: Dict[str, str]) -> Dict[Keys, Keys]:
         result = {}
@@ -57,7 +60,7 @@ class Config:
         keys = keys_two_step.get(key)
         if keys:
             return keys
-        print(f"MISSING TWO STEP KEY for {firstStep} and {key}")
+        logger.warning(f"MISSING TWO STEP KEY for {firstStep} and {key}")
         return []
 
     def try_get_two_key_command(self, firstStep: Keys, key: Keys) -> str:
@@ -65,9 +68,8 @@ class Config:
         cmd = keys_two_step.get(key)
         if cmd:
             return cmd
-        print(f"MISSING TWO STEP KEY for {firstStep} and {key}")
+        logger.warning(f"MISSING TWO STEP KEY for {firstStep} and {key}")
         return ""
-
 
     def try_get_caps_send(self, key: Keys) -> List[Keys]:
         return self.caps.get(key, [])
@@ -80,7 +82,7 @@ class Config:
         def parse_command(str) -> str:
             str = str.replace("__command__", "").lstrip("<").rstrip(">")
             if "C:" in str:
-                str = fr'{str}'
+                str = rf"{str}"
             return str
 
         for key in d:
@@ -89,4 +91,3 @@ class Config:
                 continue
             result[Keys.from_string(key)] = parse_command(d[key])
         return result
-

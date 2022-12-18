@@ -33,7 +33,9 @@ class KeyProcessor:
         self.config: Config = None
         self.app_state: AppState = None
 
-    def process(self, key: Keys, is_key_up=False, modifs_os: Modificators = None) -> Result:
+    def process(
+        self, key: Keys, is_key_up=False, modifs_os: Modificators = None
+    ) -> Result:
         assert isinstance(self.app_state.first_step, Keys)
         # process CAPSLOCK
         if key.is_caps():
@@ -152,14 +154,10 @@ class KeyProcessor:
         if self.app_state.first_step == Keys.NONE:
             return None
 
-        send = self.config.try_get_two_key_send(
-            self.app_state.first_step, key
-        )
+        send = self.config.try_get_two_key_send(self.app_state.first_step, key)
         cmd = ""
         if not send or send == [None]:
-            cmd = self.config.try_get_two_key_command(
-                self.app_state.first_step, key
-            )
+            cmd = self.config.try_get_two_key_command(self.app_state.first_step, key)
         result = self.create_result(
             self.app_state.state,
             Keys.NONE,
@@ -266,12 +264,15 @@ class KeyProcessor:
             )
 
     def try_update_modifiers_by_os(self, modifs_os: Modificators):
+        """
+        Solution of windows lock win+l. Win is down. We can't receive up event! Modifs_os is additional
+        state of modifires.
+        """
         if not modifs_os:
             return
 
         if not modifs_os.win and self.app_state.modificators.win:
-            print("WIN OFF by OS")  # for windows lock win+l issue
-            self.app_state.modificators.win = False
+            self.app_state.modificators.win = False  # for windows lock win+l issue
         if not modifs_os.control and self.app_state.modificators.control:
             self.app_state.modificators.control = False
         if not modifs_os.shift and self.app_state.modificators.shift:

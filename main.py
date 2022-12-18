@@ -36,15 +36,16 @@ def init_logging():
     logger = logging.getLogger()
     # add console handler
     console_handler = logging.StreamHandler()
+    console_handler.setLevel(logging.DEBUG)
     logger.addHandler(console_handler)
 
     log_dir_path = root / "logs"
     log_dir_path.mkdir(parents=True, exist_ok=True)
     filepath = log_dir_path / "dokey.log"
-    file_handler = logging.FileHandler(filepath, mode="w")
-    # file_handler = TimedRotatingFileHandler(
-    #     filename=filepath, when="D", backupCount=7, delay=True
-    # )
+    #file_handler = logging.FileHandler(filepath, mode="w")
+    file_handler = TimedRotatingFileHandler(
+        filename=filepath, when="D", backupCount=7, delay=True
+    )
 
     #formatter = logging.Formatter(DEFAULT_FORMAT)
     #file_handler.setFormatter(formatter)

@@ -2,8 +2,6 @@ from typing import List
 from enum import Enum
 
 
-
-
 class Keys(Enum):
     """
 
@@ -131,7 +129,6 @@ class Keys(Enum):
                 return item[0]
         if self == Keys.NONE:
             return ""
-        print("ERROR", self)
         raise ValueError
 
     def is_esc(self):
@@ -158,7 +155,13 @@ class Keys(Enum):
 
     def is_modif_ex(self):
         """Ctrl, alt, shift, win or caps"""
-        return self.is_control() or self.is_alt() or self.is_shift() or self.is_win() or self.is_caps()
+        return (
+            self.is_control()
+            or self.is_alt()
+            or self.is_shift()
+            or self.is_win()
+            or self.is_caps()
+        )
 
     def is_first_step(self):
         return self in FIRST_STEPS
@@ -167,7 +170,21 @@ class Keys(Enum):
         return self in LETTER_OR_DIGIT
 
 
-FIRST_STEPS = [Keys.Q, Keys.W, Keys.E, Keys.R, Keys.T, Keys.A, Keys.S, Keys.D, Keys.F, Keys.G, Keys.B, Keys.U, Keys.I]
+FIRST_STEPS = [
+    Keys.Q,
+    Keys.W,
+    Keys.E,
+    Keys.R,
+    Keys.T,
+    Keys.A,
+    Keys.S,
+    Keys.D,
+    Keys.F,
+    Keys.G,
+    Keys.B,
+    Keys.U,
+    Keys.I,
+]
 
 LETTER_OR_DIGIT = [
     Keys.Q,
@@ -221,7 +238,6 @@ LETTER_OR_DIGIT = [
     Keys.COMMA,
     Keys.PERIOD,
 ]
-
 
 
 keyboard_to_dokey_map = {
@@ -355,10 +371,6 @@ def string_to_multi_keys(s: str) -> []:
     return list(map(Keys.from_string, result))
 
 
-# send(57)
-# send('ctrl+alt+del')
-# send('alt+F4, enter')
-# send('shift+s')
 def keys_to_send(keys: List[Keys]) -> str:
     send = ""
     for key in keys:

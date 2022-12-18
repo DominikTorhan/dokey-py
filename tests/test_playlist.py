@@ -81,7 +81,6 @@ class TestPlaylist(unittest.TestCase):
             i += 1
             input = run["input"]
             expected = run["output"]
-            print(input, expected)
             app_state, key, is_up = self.manage_input(input)
             # main call
             result = self.main(key, app_state, config, is_up)

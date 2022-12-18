@@ -48,7 +48,7 @@ class App:
 
     def handle_keyboard_event(self, key: Keys, is_up: bool, modifs_os: Modificators = None):
         """Main function to handle keyboard event. It is kind of iteration in main while loop."""
-        print("new event:", key, "is_up: ", is_up)
+        logger.info(f"EVENT: {key}, vk{str(key.value)} {'up' if is_up else 'down'}")
 
         self.processor.app_state = self.app_state
         result = self.processor.process(key=key, is_key_up=is_up, modifs_os=modifs_os)

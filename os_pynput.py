@@ -1,3 +1,4 @@
+import logging
 from typing import List
 from pynput import keyboard
 from app.app import ListenerABC
@@ -6,6 +7,10 @@ from app.keys import Keys, shift_keys, control_keys, alt_keys, win_keys
 from pynput.keyboard import Key, Controller, KeyCode
 import time
 import ctypes
+
+
+logger = logging.getLogger(__name__)
+
 
 user32_dll = ctypes.WinDLL("User32.dll")
 
@@ -41,7 +46,7 @@ def get_modif_state():
     modifs.alt = is_modif_active(alt_keys)
     modifs.win = is_modif_active(win_keys)
     modifs.caps = is_modif_active([Keys.CAPS])  # not sure if that works
-    print(f"os modifs {repr(modifs)}")
+    logger.debug(f"os modifs {repr(modifs)}")
     return modifs
 
 
@@ -66,16 +71,14 @@ class PynpytListener(ListenerABC):
         msg: 256 keydown, 257, keyup, 260 syskeydown, 261 up
         """
         if self.is_sending:
-            print(f"Is sending, prevent! Suppress state: {self.listener._suppress}")
+            logger.debug(f"Is sending, prevent! Suppress state: {self.listener._suppress}")
             return True
         self.listener._suppress = False
         if is_capslock_on():
             return True
         modifs_os = get_modif_state()
         is_up = msg == 257 or msg == 261
-        is_up_str = "up" if is_up else "down"
         key = Keys(data.vkCode)
-        print(f"win32_event {key}(vk{data.vkCode}) {is_up_str} ")
         send, prev = self.func(key, is_up, modifs_os)
         if send:
             if Keys.COMMAND_EXIT in send:
@@ -95,7 +98,7 @@ class PynpytListener(ListenerABC):
     def send_keys(self, send: List[Keys]):
         keyboard = Controller()
         modifs = []
-        print("__WILL_SEND__: ", send)
+        logger.debug("__WILL_SEND__: ", send)
 
         for key in send:
             key_code = KeyCode.from_vk(key.value)
@@ -107,4 +110,4 @@ class PynpytListener(ListenerABC):
                 keyboard.press(key_code)
                 keyboard.release(key_code)
             modifs = []
-        print("__SENT__")
+        logger.debug("__SENT__")
