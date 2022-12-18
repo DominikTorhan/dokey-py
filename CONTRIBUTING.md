@@ -8,7 +8,5 @@ In Pycharm
 ### Tests
 Run tests with: 
 ```
-python -m tests
+python -m unittest
 ```
-
-test

@@ -1,3 +1,5 @@
+import logging
+from logging.handlers import TimedRotatingFileHandler
 from app.app import App, TrayAppInterface, ListenerABC
 from app.app_state import NORMAL, OFF, INSERT
 from os_pynput import PynpytListener
@@ -30,8 +32,21 @@ def start_tray_app():
     return set_icon, icon.stop
 
 
+def init_logging():
+    logger = logging.getLogger()
+    log_dir_path = root / "logs"
+    log_dir_path.mkdir(parents=True, exist_ok=True)
+    filepath = log_dir_path / "dokey.log"
+    logging.basicConfig(filename=filepath, level=logging.INFO)
+    handler = TimedRotatingFileHandler(
+        filename=filepath, when="D", backupCount=7, delay=True
+    )
+    logger.addHandler(handler)
+
+
 # main entrypoint
 if __name__ == "__main__":
+    init_logging()
     config_path = str(root / "app" / "config.yaml")
     set_icon, stop_app = start_tray_app()
     listener = PynpytListener()

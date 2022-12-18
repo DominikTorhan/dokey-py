@@ -1,4 +1,4 @@
-from app.enums import Keys
+from app.keys import Keys
 from app.modificators import Modificators
 
 OFF: int = 0

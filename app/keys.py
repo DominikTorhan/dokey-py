@@ -2,6 +2,8 @@ from typing import List
 from enum import Enum
 
 
+
+
 class Keys(Enum):
     """
 
@@ -132,16 +134,94 @@ class Keys(Enum):
         print("ERROR", self)
         raise ValueError
 
+    def is_esc(self):
+        return self in [Keys.ESC]
+
+    def is_control(self):
+        return self in [Keys.RIGHT_CTRL, Keys.LEFT_CTRL]
+
+    def is_shift(self):
+        return self in [Keys.RIGHT_SHIFT, Keys.LEFT_SHIFT]
+
+    def is_alt(self):
+        return self in [Keys.RIGHT_ALT, Keys.LEFT_ALT]
+
+    def is_win(self):
+        return self in [Keys.RIGHT_WIN, Keys.LEFT_WIN]
+
+    def is_caps(self):
+        return self in [Keys.CAPS]
+
     def is_modif(self):
-        modifs = [
-            Keys.LEFT_CTRL,
-            Keys.RIGHT_CTRL,
-            Keys.RIGHT_ALT,
-            Keys.LEFT_ALT,
-            Keys.LEFT_SHIFT,
-            Keys.RIGHT_SHIFT,
-        ]
-        return self in modifs  # send no win, caps
+        """Ctrl, alt or shift"""
+        return self.is_control() or self.is_alt() or self.is_shift()
+
+    def is_modif_ex(self):
+        """Ctrl, alt, shift, win or caps"""
+        return self.is_control() or self.is_alt() or self.is_shift() or self.is_win() or self.is_caps()
+
+    def is_first_step(self):
+        return self in FIRST_STEPS
+
+    def is_letter_or_digit(self):
+        return self in LETTER_OR_DIGIT
+
+
+FIRST_STEPS = [Keys.Q, Keys.W, Keys.E, Keys.R, Keys.T, Keys.A, Keys.S, Keys.D, Keys.F, Keys.G, Keys.B, Keys.U, Keys.I]
+
+LETTER_OR_DIGIT = [
+    Keys.Q,
+    Keys.W,
+    Keys.E,
+    Keys.R,
+    Keys.T,
+    Keys.Y,
+    Keys.U,
+    Keys.I,
+    Keys.O,
+    Keys.P,
+    Keys.A,
+    Keys.S,
+    Keys.D,
+    Keys.F,
+    Keys.G,
+    Keys.H,
+    Keys.J,
+    Keys.K,
+    Keys.L,
+    Keys.Z,
+    Keys.X,
+    Keys.C,
+    Keys.V,
+    Keys.B,
+    Keys.N,
+    Keys.M,
+    Keys.D1,
+    Keys.D2,
+    Keys.D3,
+    Keys.D4,
+    Keys.D5,
+    Keys.D6,
+    Keys.D7,
+    Keys.D8,
+    Keys.D9,
+    Keys.D0,
+    Keys.F1,
+    Keys.F2,
+    Keys.F3,
+    Keys.F4,
+    Keys.F5,
+    Keys.F6,
+    Keys.F7,
+    Keys.F8,
+    Keys.F9,
+    Keys.F10,
+    Keys.F11,
+    Keys.F12,
+    Keys.COMMA,
+    Keys.PERIOD,
+]
+
 
 
 keyboard_to_dokey_map = {

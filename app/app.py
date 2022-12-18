@@ -1,13 +1,14 @@
-import subprocess
+import logging
 import os
 from abc import ABC, abstractmethod
-from typing import List
 from app.app_state import AppState, OFF, NORMAL
-from app.key_processor import Processor, Result
+from app.key_processor import KeyProcessor, Result
 from app.config import Config
-from app.input_key import InputKey
-from app.enums import Keys, keys_to_send
+from app.keys import Keys, keys_to_send
 from app.modificators import Modificators
+
+
+logger = logging.getLogger(__name__)
 
 
 class TrayAppInterface:
@@ -36,52 +37,47 @@ class App:
         self.tray_app_interface = tray_app_interface
         self.app_state = AppState()
         self.is_sending = False
+        self.processor = KeyProcessor()
+        self.processor.config = self.config
 
     def main(self):
 
-        print("start main loop")
-        self.listener.run(self.iteration)
-        print("Terminate!")
+        logger.info("Started DoKey App.")
+        self.listener.run(self.handle_keyboard_event)
+        logger.info("Terminate!")
 
-    def process(self, key: Keys, is_up: bool, modifs_os: Modificators = None) -> Result:
-        input_key = InputKey.from_string(key)
-        processor = Processor()
-        processor.config = self.config
-        processor.app_state = self.app_state
-        processor.input_key = input_key
-        processor.is_key_up = is_up
-        return processor.process(modifs_os=modifs_os)
-
-    def iteration(self, key: Keys, is_up: bool, modifs_os: Modificators = None):
-        # key, is_up, pass_func = self.keyboard_interface.wait_for_keyboard()
-        # if self.is_sending: # TODO: send in implementation?
-        #     return None, False
+    def handle_keyboard_event(self, key: Keys, is_up: bool, modifs_os: Modificators = None):
+        """Main function to handle keyboard event. It is kind of iteration in main while loop."""
         print("new event:", key, "is_up: ", is_up)
-        result = self.process(key, is_up, modifs_os)
-        prevent = False
-        if result:
-            state_changed = self.app_state.state != result.app_state.state
-            self.app_state = result.app_state
-            if state_changed and self.tray_app_interface:
-                self.tray_app_interface.set_icon(self.app_state.state)
-            print("new state: ", self.app_state.to_string())
-            send: List[Keys] = result.send
-            if Keys.COMMAND_EXIT in send:
-                print("EXEC EXIT COMMAND!")
-                if self.tray_app_interface:
-                    self.tray_app_interface.stop()
-                return send, True  # TODO: EXit
-            prevent = result.prevent_key_process
-            is_sending = True
-            if result.cmd:
-                cmd = result.cmd
-                print(f"EXEC {cmd}")
-                os.popen(cmd)  # popen for proper thread/subprocess
-            elif send and len(send) > 0:
-                send_keyboard = keys_to_send(send)
-                print(send, " -> ", send_keyboard)
-                # if there is send, there will be always PREV
-                return send, True
-                # self.keyboard_interface.send_keyboard_event(send_keyboard)
-        is_sending = False
-        return None, prevent
+
+        self.processor.app_state = self.app_state
+        result = self.processor.process(key=key, is_key_up=is_up, modifs_os=modifs_os)
+        if not result:
+            return None, False
+
+        state_changed = self.app_state.state != result.app_state.state
+        self.app_state = result.app_state
+        if state_changed and self.tray_app_interface:
+            self.tray_app_interface.set_icon(self.app_state.state)
+
+        # terminate app
+        if Keys.COMMAND_EXIT in result.send:
+            if self.tray_app_interface:
+                self.tray_app_interface.stop()
+            return [Keys.COMMAND_EXIT], True  # TODO: EXit
+
+        # Execute custom command
+        if result.cmd:
+            cmd = result.cmd
+            print(f"EXEC {cmd}")
+            os.popen(cmd)  # popen for proper thread/subprocess
+            return None, result.prevent_key_process
+
+        if not result.send or len(result.send) == 0:
+            return None, result.prevent_key_process
+
+        send = result.send
+        friendly_keys = keys_to_send(send)
+        logger.info(f"SEND<{friendly_keys}>") # add trigger
+        print(send, " -> ", friendly_keys)
+        return send, True

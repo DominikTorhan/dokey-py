@@ -1,6 +1,6 @@
 import unittest
 from pathlib import Path
-from app.enums import Keys, keys_to_send
+from app.keys import Keys, keys_to_send
 from main import App, ListenerABC
 
 CONFIG_PATH = Path(__file__).parent.parent / "app" / "config.yaml"
@@ -55,15 +55,16 @@ test_app_playlist = [
     ),
 ]
 
-class TestListener(ListenerABC):
 
+class TestListener(ListenerABC):
     def __init__(self, events, sends):
         self.events = events
         self.sends = sends
+
     def run(self, func):
         gen_read = iter(self.events)
         gen_send = iter(self.sends)
-        while(True):
+        while True:
             key, up = next(gen_read)
             is_up = up == "u"
             send, prev = func(key, is_up)
@@ -76,7 +77,6 @@ class TestListener(ListenerABC):
                 assert send_keyboard == expected
 
 
-
 class TestApp(unittest.TestCase):
     def test_app(self):
         def test_run(events, sends):
@@ -86,11 +86,5 @@ class TestApp(unittest.TestCase):
             app.main()
 
         for test in test_app_playlist:
+            # check if doesn't crash
             test_run(test[0], test[1])
-
-
-
-
-
-if __name__ == '__main__':
-    unittest.main()

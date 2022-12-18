@@ -73,6 +73,7 @@ i: # first step i
 
 
 d: # first step d
+  t: alt+f12 # pycharm show terminal
   z: ctrl+f7,ctrl+f8 # EvernoteFocusListTrick
 
 q:

@@ -1,11 +1,10 @@
 import unittest
 from pathlib import Path
 import yaml
-from app.input_key import InputKey
 from app.app_state import AppState
-from app.key_processor import Result, Processor
+from app.key_processor import Result, KeyProcessor
 from app.config import Config
-from app.enums import Keys, keys_to_send
+from app.keys import Keys, keys_to_send
 from app.modificators import Modificators
 from main import App, ListenerABC
 
@@ -64,15 +63,12 @@ class TestPlaylist(unittest.TestCase):
 
         return playlist_data["playlist"]
 
-    def main(self, key: str, app_state: AppState, config: Config, is_up: bool) -> Result:
+    def main(self, key: Keys, app_state: AppState, config: Config, is_up: bool) -> Result:
 
-        input_key = InputKey.from_string(key)
-        processor = Processor()
+        processor = KeyProcessor()
         processor.config = config
         processor.app_state = app_state
-        processor.input_key = input_key
-        processor.is_key_up = is_up
-        result = processor.process()
+        result = processor.process(key=key, is_key_up=is_up)
         return result
 
     def test_playlist(self):

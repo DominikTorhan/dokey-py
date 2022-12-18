@@ -2,7 +2,7 @@ from typing import List
 from pynput import keyboard
 from app.app import ListenerABC
 from app.modificators import Modificators
-from app.enums import Keys, shift_keys, control_keys, alt_keys, win_keys
+from app.keys import Keys, shift_keys, control_keys, alt_keys, win_keys
 from pynput.keyboard import Key, Controller, KeyCode
 import time
 import ctypes
