@@ -6,12 +6,9 @@ from app.key_processor import Result, KeyProcessor
 from app.config import Config
 from app.keys import Keys, keys_to_send
 from app.modificators import Modificators
-from main import App, ListenerABC
 
 CONFIG_PATH = Path(__file__).parent.parent / "app" / "config.yaml"
 PLAYLIST_PATH = Path(__file__).parent / "test_playlist.yaml"
-
-
 
 
 class TestPlaylist(unittest.TestCase):
@@ -63,16 +60,11 @@ class TestPlaylist(unittest.TestCase):
 
         return playlist_data["playlist"]
 
-    def main(self, key: Keys, app_state: AppState, config: Config, is_up: bool) -> Result:
-
+    def test_key_processor(self):
+        config = Config.from_file(CONFIG_PATH)
         processor = KeyProcessor()
         processor.config = config
-        processor.app_state = app_state
-        result = processor.process(key=key, is_key_up=is_up)
-        return result
 
-    def test_playlist(self):
-        config = Config.from_file(CONFIG_PATH)
         playlist = self.read_playlist()
 
         i = 0
@@ -83,12 +75,9 @@ class TestPlaylist(unittest.TestCase):
             expected = run["output"]
             app_state, key, is_up = self.manage_input(input)
             # main call
-            result = self.main(key, app_state, config, is_up)
+            processor.app_state = app_state
+            result = processor.process(key=key, is_key_up=is_up)
+
             actual = self.result_to_string(result)
 
             self.assertEqual(actual, expected)
-
-
-
-if __name__ == '__main__':
-    unittest.main()

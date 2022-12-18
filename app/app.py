@@ -78,5 +78,5 @@ class App:
 
         send = result.send
         friendly_keys = keys_to_send(send)
-        logger.info(f"SEND: {friendly_keys}") # add trigger
+        logger.info(f"SEND: {friendly_keys}") # TODO: add trigger (eg. f,f -> f12)
         return send, True
