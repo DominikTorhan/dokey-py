@@ -34,14 +34,26 @@ def start_tray_app():
 
 def init_logging():
     logger = logging.getLogger()
+    # add console handler
+    console_handler = logging.StreamHandler()
+    logger.addHandler(console_handler)
+
     log_dir_path = root / "logs"
     log_dir_path.mkdir(parents=True, exist_ok=True)
     filepath = log_dir_path / "dokey.log"
-    logging.basicConfig(filename=filepath, level=logging.INFO)
-    handler = TimedRotatingFileHandler(
-        filename=filepath, when="D", backupCount=7, delay=True
-    )
-    logger.addHandler(handler)
+    file_handler = logging.FileHandler(filepath, mode="w")
+    # file_handler = TimedRotatingFileHandler(
+    #     filename=filepath, when="D", backupCount=7, delay=True
+    # )
+
+    #formatter = logging.Formatter(DEFAULT_FORMAT)
+    #file_handler.setFormatter(formatter)
+
+    logger.addHandler(file_handler)
+    logger.setLevel(logging.INFO)
+
+    logger.critical("init logging!")
+
 
 
 # main entrypoint

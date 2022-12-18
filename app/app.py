@@ -69,7 +69,7 @@ class App:
         # Execute custom command
         if result.cmd:
             cmd = result.cmd
-            print(f"EXEC {cmd}")
+            logger.info(f"EXEC CMD: {cmd}")
             os.popen(cmd)  # popen for proper thread/subprocess
             return None, result.prevent_key_process
 
@@ -78,6 +78,5 @@ class App:
 
         send = result.send
         friendly_keys = keys_to_send(send)
-        logger.info(f"SEND<{friendly_keys}>") # add trigger
-        print(send, " -> ", friendly_keys)
+        logger.info(f"SEND: {friendly_keys}") # add trigger
         return send, True
