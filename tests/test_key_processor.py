@@ -44,7 +44,12 @@ class TestPlaylist(unittest.TestCase):
         if not result:
             return "None"
         string = ""
-        string += result.app_state.to_string(result.state, result.first_step)
+
+        prev = "*" if result.prevent_esc_on_caps_up else ""
+
+        s = f"{str(result.state)},{result.first_step.to_string()},{result.modificators.to_string()}{prev}"
+        #result.app_state.to_string(result.state, result.first_step)
+        string += s
         string += " "
         if result.send:
             string += keys_to_send(result.send)
@@ -77,7 +82,7 @@ class TestPlaylist(unittest.TestCase):
             # main call
             processor.app_state = app_state
             #state = app_state.state
-            if i == 23:
+            if i == 1:
                 x = 0
             try:
                 result = processor.process(key=key, state=state, is_key_up=is_up, first_step=first_step)

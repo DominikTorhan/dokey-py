@@ -67,7 +67,9 @@ class App:
         if not result.state or isinstance(result.state, AppState):
             i = 0
 
-        self.app_state = result.app_state
+        #self.app_state = result.app_state
+        self.app_state.modificators = result.modificators
+        self.app_state.prevent_esc_on_caps_up = result.prevent_esc_on_caps_up
         self.first_step = result.first_step
         state_changed = False
         if result.state > -1:

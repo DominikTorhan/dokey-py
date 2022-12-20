@@ -25,9 +25,12 @@ class Result:
         self.send: List[Keys] = []
         self.cmd = ""
         self.prevent_key_process: bool = False
+        self.modificators = None
+        self.prevent_esc_on_caps_up = False
 
-    def __repr__(self):
-        return f"Send: {self.send} AppState: {self.app_state} Prev: {self.prevent_key_process}"
+
+    # def __repr__(self):
+    #     return f"Send: {self.send} AppState: {self.app_state} Prev: {self.prevent_key_process}"
 
 
 class KeyProcessor:
@@ -60,6 +63,8 @@ class KeyProcessor:
             app_state.modificators = self.app_state.modificators
             result = self.create_result_with_app_state(app_state, True, first_step=first_step)
             result.state = new_state
+            result.prevent_esc_on_caps_up = prevent_esc_on_caps_up
+            result.modificators = self.app_state.modificators
             return result
 
         # single step
@@ -88,29 +93,14 @@ class KeyProcessor:
             mode_change_key = Keys.F
             if key == mode_off_key:
                 return OFF, True
-                # app_state = AppState()
-                # app_state.state = OFF
-                # app_state.prevent_esc_on_caps_up = True
-                # app_state.modificators = self.app_state.modificators
-                # return app_state
 
             if key == mode_change_key:
                 return get_next_state(state), True
-                # app_state = AppState()
-                # app_state.state = get_next_state(state)
-                # app_state.prevent_esc_on_caps_up = True
-                # app_state.modificators = self.app_state.modificators
-                # return app_state
 
             return -1, False
 
         if key.is_esc() and state == INSERT:
             return get_prev_state(state), self.app_state.prevent_esc_on_caps_up
-            # app_state = AppState()
-            # app_state.state = get_prev_state(state)
-            # app_state.modificators = self.app_state.modificators
-            # app_state.prevent_esc_on_caps_up = self.app_state.prevent_esc_on_caps_up
-            # return app_state
 
         return -1, False
 
@@ -219,12 +209,14 @@ class KeyProcessor:
     ) -> Result:
         app_state = AppState()
         #app_state.state = state
-        app_state.prevent_esc_on_caps_up = prevent_esc_on_caps_up
-        app_state.modificators = modificators
+        # app_state.prevent_esc_on_caps_up = prevent_esc_on_caps_up
+        # app_state.modificators = modificators
         result = Result()
         result.first_step = first_step
         result.state = state
-        result.app_state = app_state
+        #result.app_state = app_state
+        result.modificators = modificators
+        result.prevent_esc_on_caps_up = prevent_esc_on_caps_up
         result.send = send
         result.prevent_key_process = prevent_key_process
         result.cmd = cmd
@@ -237,6 +229,8 @@ class KeyProcessor:
         result.first_step =first_step
         result.state=state
         result.app_state = app_state
+        result.modificators = app_state.modificators
+        result.prevent_esc_on_caps_up = app_state.prevent_esc_on_caps_up
         result.send = send
         result.prevent_key_process = prevent_key_process
         return result
