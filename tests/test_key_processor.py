@@ -14,22 +14,22 @@ PLAYLIST_PATH = Path(__file__).parent / "test_playlist.yaml"
 class TestPlaylist(unittest.TestCase):
     def manage_input(self, string: str) -> (AppState, str, bool):
         strs = string.split()
-        app_state = self.app_state_from_string(strs[0])
+        app_state, state = self.app_state_from_string(strs[0])
         key = Keys.from_string(strs[1])
         is_up = strs[2] == "up"
-        return app_state, key, is_up
+        return app_state, key, is_up, state
 
-    def app_state_from_string(self, string: str) -> AppState:
+    def app_state_from_string(self, string: str) -> (AppState, int):
         """0,,
         1,i,^+%wc*
         """
         app_state = AppState()
         strs = string.split(",")
-        app_state.state = int(strs[0])
+        state = int(strs[0])
         app_state.first_step = Keys.from_string(strs[1])
         app_state.modificators = self.modificators_from_string(strs[2])
         app_state.prevent_esc_on_caps_up = "*" in strs[2]
-        return app_state
+        return app_state, state
 
     def modificators_from_string(self, string) -> Modificators:
         modificators = Modificators()
@@ -44,7 +44,7 @@ class TestPlaylist(unittest.TestCase):
         if not result:
             return "None"
         string = ""
-        string += result.app_state.to_string()
+        string += result.app_state.to_string(result.state)
         string += " "
         if result.send:
             string += keys_to_send(result.send)
@@ -73,11 +73,20 @@ class TestPlaylist(unittest.TestCase):
             i += 1
             input = run["input"]
             expected = run["output"]
-            app_state, key, is_up = self.manage_input(input)
+            app_state, key, is_up, state = self.manage_input(input)
             # main call
             processor.app_state = app_state
-            result = processor.process(key=key, is_key_up=is_up)
+            #state = app_state.state
+            if i == 23:
+                x = 0
+            try:
+                result = processor.process(key=key, state=state, is_key_up=is_up)
+            except:
+                x = 0
 
             actual = self.result_to_string(result)
 
-            self.assertEqual(actual, expected)
+            if expected != actual:
+                x = 0
+
+            self.assertEqual(expected, actual)

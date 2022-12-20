@@ -36,6 +36,7 @@ class App:
         self.listener = listener
         self.tray_app_interface = tray_app_interface
         self.app_state = AppState()
+        self.state: int = NORMAL
         self.is_sending = False
         self.processor = KeyProcessor()
         self.processor.config = self.config
@@ -51,14 +52,19 @@ class App:
         logger.info(f"EVENT: {key}, vk{str(key.value)} {'up' if is_up else 'down'}")
 
         self.processor.app_state = self.app_state
-        result = self.processor.process(key=key, is_key_up=is_up, modifs_os=modifs_os)
+        result = self.processor.process(key=key, is_key_up=is_up, state=self.state, modifs_os=modifs_os)
         if not result:
             return None, False
+        if not result.state or isinstance(result.state, AppState):
+            i = 0
 
-        state_changed = self.app_state.state != result.app_state.state
         self.app_state = result.app_state
+        state_changed = False
+        if result.state > -1:
+            state_changed = True
+            self.state = result.state
         if state_changed and self.tray_app_interface:
-            self.tray_app_interface.set_icon(self.app_state.state)
+            self.tray_app_interface.set_icon(self.state)
 
         # terminate app
         if Keys.COMMAND_EXIT in result.send:

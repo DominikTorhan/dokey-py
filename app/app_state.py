@@ -7,7 +7,6 @@ INSERT: int = 2
 
 class AppState:
     def __init__(self):
-        self.state: int = NORMAL
         self.first_step: Keys = Keys.NONE
         self.prevent_esc_on_caps_up: bool = False
         self.modificators: Modificators = Modificators()
@@ -15,8 +14,8 @@ class AppState:
     def __repr__(self) -> str:
         return self.to_string()
 
-    def to_string(self) -> str:
+    def to_string(self, state=-1) -> str:
         prev = "*" if self.prevent_esc_on_caps_up else ""
 
-        s = f"{str(self.state)},{self.first_step.to_string()},{self.modificators.to_string()}{prev}"
+        s = f"{str(state)},{self.first_step.to_string()},{self.modificators.to_string()}{prev}"
         return s
