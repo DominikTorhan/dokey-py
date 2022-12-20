@@ -28,7 +28,7 @@ test_app_playlist = [
             (Keys.CAPS, "u"),
             (Keys.Z, "d"),
             (Keys.Z, "u"),
-            (Keys.I, "d"),
+            (Keys.I, "d"), # first step
             (Keys.I, "u"),
             (Keys.K, "d"),
             (Keys.K, "u"),

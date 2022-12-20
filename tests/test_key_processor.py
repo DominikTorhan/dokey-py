@@ -14,22 +14,22 @@ PLAYLIST_PATH = Path(__file__).parent / "test_playlist.yaml"
 class TestPlaylist(unittest.TestCase):
     def manage_input(self, string: str) -> (AppState, str, bool):
         strs = string.split()
-        app_state, state = self.app_state_from_string(strs[0])
+        app_state, state, first_step = self.app_state_from_string(strs[0])
         key = Keys.from_string(strs[1])
         is_up = strs[2] == "up"
-        return app_state, key, is_up, state
+        return app_state, key, is_up, state, first_step
 
-    def app_state_from_string(self, string: str) -> (AppState, int):
+    def app_state_from_string(self, string: str) -> (AppState, int, Keys):
         """0,,
         1,i,^+%wc*
         """
         app_state = AppState()
         strs = string.split(",")
         state = int(strs[0])
-        app_state.first_step = Keys.from_string(strs[1])
+        first_step = Keys.from_string(strs[1])
         app_state.modificators = self.modificators_from_string(strs[2])
         app_state.prevent_esc_on_caps_up = "*" in strs[2]
-        return app_state, state
+        return app_state, state, first_step
 
     def modificators_from_string(self, string) -> Modificators:
         modificators = Modificators()
@@ -44,7 +44,7 @@ class TestPlaylist(unittest.TestCase):
         if not result:
             return "None"
         string = ""
-        string += result.app_state.to_string(result.state)
+        string += result.app_state.to_string(result.state, result.first_step)
         string += " "
         if result.send:
             string += keys_to_send(result.send)
@@ -73,14 +73,14 @@ class TestPlaylist(unittest.TestCase):
             i += 1
             input = run["input"]
             expected = run["output"]
-            app_state, key, is_up, state = self.manage_input(input)
+            app_state, key, is_up, state, first_step = self.manage_input(input)
             # main call
             processor.app_state = app_state
             #state = app_state.state
             if i == 23:
                 x = 0
             try:
-                result = processor.process(key=key, state=state, is_key_up=is_up)
+                result = processor.process(key=key, state=state, is_key_up=is_up, first_step=first_step)
             except:
                 x = 0
 

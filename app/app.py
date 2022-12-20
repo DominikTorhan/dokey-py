@@ -37,6 +37,7 @@ class App:
         self.tray_app_interface = tray_app_interface
         self.app_state = AppState()
         self.state: int = NORMAL
+        self.first_step: Keys = Keys.NONE
         self.is_sending = False
         self.processor = KeyProcessor()
         self.processor.config = self.config
@@ -47,18 +48,27 @@ class App:
         self.listener.run(self.handle_keyboard_event)
         logger.info("Terminate!")
 
-    def handle_keyboard_event(self, key: Keys, is_up: bool, modifs_os: Modificators = None):
+    def handle_keyboard_event(
+        self, key: Keys, is_up: bool, modifs_os: Modificators = None
+    ):
         """Main function to handle keyboard event. It is kind of iteration in main while loop."""
         logger.info(f"EVENT: {key}, vk{str(key.value)} {'up' if is_up else 'down'}")
 
         self.processor.app_state = self.app_state
-        result = self.processor.process(key=key, is_key_up=is_up, state=self.state, modifs_os=modifs_os)
+        result = self.processor.process(
+            key=key,
+            is_key_up=is_up,
+            state=self.state,
+            modifs_os=modifs_os,
+            first_step=self.first_step,
+        )
         if not result:
             return None, False
         if not result.state or isinstance(result.state, AppState):
             i = 0
 
         self.app_state = result.app_state
+        self.first_step = result.first_step
         state_changed = False
         if result.state > -1:
             state_changed = True
@@ -84,5 +94,5 @@ class App:
 
         send = result.send
         friendly_keys = keys_to_send(send)
-        logger.info(f"SEND: {friendly_keys}") # TODO: add trigger (eg. f,f -> f12)
+        logger.info(f"SEND: {friendly_keys}")  # TODO: add trigger (eg. f,f -> f12)
         return send, True
