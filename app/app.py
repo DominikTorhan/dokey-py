@@ -36,6 +36,7 @@ class App:
         self.listener = listener
         self.tray_app_interface = tray_app_interface
         self.app_state = AppState()
+        self.prevent_esc_on_caps_up: bool = False
         self.state: int = NORMAL
         self.first_step: Keys = Keys.NONE
         self.is_sending = False
@@ -61,6 +62,7 @@ class App:
             state=self.state,
             modifs_os=modifs_os,
             first_step=self.first_step,
+            prevent_esc_on_caps_up=self.prevent_esc_on_caps_up
         )
         if not result:
             return None, False
@@ -69,7 +71,8 @@ class App:
 
         #self.app_state = result.app_state
         self.app_state.modificators = result.modificators
-        self.app_state.prevent_esc_on_caps_up = result.prevent_esc_on_caps_up
+        #self.app_state.prevent_esc_on_caps_up = result.prevent_esc_on_caps_up
+        self.prevent_esc_on_caps_up = result.prevent_esc_on_caps_up
         self.first_step = result.first_step
         state_changed = False
         if result.state > -1:

@@ -14,10 +14,15 @@ PLAYLIST_PATH = Path(__file__).parent / "test_playlist.yaml"
 class TestPlaylist(unittest.TestCase):
     def manage_input(self, string: str) -> (AppState, str, bool):
         strs = string.split()
-        app_state, state, first_step = self.app_state_from_string(strs[0])
+        (
+            app_state,
+            state,
+            first_step,
+            prevent_esc_on_caps_up,
+        ) = self.app_state_from_string(strs[0])
         key = Keys.from_string(strs[1])
         is_up = strs[2] == "up"
-        return app_state, key, is_up, state, first_step
+        return app_state, key, is_up, state, first_step, prevent_esc_on_caps_up
 
     def app_state_from_string(self, string: str) -> (AppState, int, Keys):
         """0,,
@@ -28,8 +33,9 @@ class TestPlaylist(unittest.TestCase):
         state = int(strs[0])
         first_step = Keys.from_string(strs[1])
         app_state.modificators = self.modificators_from_string(strs[2])
-        app_state.prevent_esc_on_caps_up = "*" in strs[2]
-        return app_state, state, first_step
+        prevent_esc_on_caps_up = "*" in strs[2]
+        #app_state.prevent_esc_on_caps_up = "*" in strs[2]
+        return app_state, state, first_step, prevent_esc_on_caps_up
 
     def modificators_from_string(self, string) -> Modificators:
         modificators = Modificators()
@@ -48,7 +54,7 @@ class TestPlaylist(unittest.TestCase):
         prev = "*" if result.prevent_esc_on_caps_up else ""
 
         s = f"{str(result.state)},{result.first_step.to_string()},{result.modificators.to_string()}{prev}"
-        #result.app_state.to_string(result.state, result.first_step)
+        # result.app_state.to_string(result.state, result.first_step)
         string += s
         string += " "
         if result.send:
@@ -78,14 +84,27 @@ class TestPlaylist(unittest.TestCase):
             i += 1
             input = run["input"]
             expected = run["output"]
-            app_state, key, is_up, state, first_step = self.manage_input(input)
+            (
+                app_state,
+                key,
+                is_up,
+                state,
+                first_step,
+                prevent_esc_on_caps_up,
+            ) = self.manage_input(input)
             # main call
             processor.app_state = app_state
-            #state = app_state.state
+            # state = app_state.state
             if i == 1:
                 x = 0
             try:
-                result = processor.process(key=key, state=state, is_key_up=is_up, first_step=first_step)
+                result = processor.process(
+                    key=key,
+                    state=state,
+                    is_key_up=is_up,
+                    first_step=first_step,
+                    prevent_esc_on_caps_up=prevent_esc_on_caps_up,
+                )
             except:
                 x = 0
 
