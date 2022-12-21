@@ -1,27 +1,27 @@
 from typing import List, Optional
-from app.app_state import AppState, OFF, NORMAL, INSERT
+from app.current_state import CurrentState, OFF, NORMAL, INSERT
 from app.config import Config
 from app.modificators import Modificators
 from app.keys import Keys
 
 
-def get_prev_state(state: int) -> int:
-    if state == INSERT or state == NORMAL:
+def get_prev_mode(mode: int) -> int:
+    if mode == INSERT or mode == NORMAL:
         return NORMAL
     return OFF
 
 
-def get_next_state(state: int) -> int:
-    if state == INSERT or state == NORMAL:
+def get_next_mode(mode: int) -> int:
+    if mode == INSERT or mode == NORMAL:
         return INSERT
     return NORMAL
 
 
 class Result:
     def __init__(self):
-        self.state = -1
+        self.mode = -1
         self.first_step = Keys.NONE
-        self.app_state: AppState = None
+        self.app_state: CurrentState = None
         self.send: List[Keys] = []
         self.cmd = ""
         self.prevent_key_process: bool = False
@@ -29,63 +29,86 @@ class Result:
         self.prevent_esc_on_caps_up = False
 
 
-    # def __repr__(self):
-    #     return f"Send: {self.send} AppState: {self.app_state} Prev: {self.prevent_key_process}"
-
-
 class KeyProcessor:
-    def __init__(self):
-        self.config: Config = None
-        self.app_state: AppState = None
+    def __init__(self, config):
+        self.config: Config = config
+        self.app_state: CurrentState = None
 
     def process(
-        self, key: Keys, is_key_up=False, state:int=NORMAL, modifs_os: Modificators = None, first_step=Keys.NONE, prevent_esc_on_caps_up=False
+        self,
+        key: Keys,
+        is_key_up=False,
+        mode: int = NORMAL,
+        modifs_os: Modificators = None,
+        first_step=Keys.NONE,
+        prevent_esc_on_caps_up=False,
     ) -> Result:
-        assert isinstance(first_step, Keys)
         # process CAPSLOCK
         if key.is_caps():
-            return self.process_capital(key, is_key_up, state, prevent_esc_on_caps_up)
+            return self.process_capital(key, is_key_up, mode, prevent_esc_on_caps_up)
         # process Modificators
         if key.is_modif_ex():
-            return self.process_modificators(key, is_key_up, state, first_step, prevent_esc_on_caps_up)
+            return self.process_modificators(
+                key, is_key_up, mode, first_step, prevent_esc_on_caps_up
+            )
 
         # try update modifiers by OS modifiers. only when non modifier is pressed.
         self.try_update_modifiers_by_os(modifs_os)
 
         if is_key_up:
-            return self.create_result_with_app_state(app_state=self.app_state, state=state, first_step=first_step,prevent_esc_on_caps_up=prevent_esc_on_caps_up)
+            return self.create_result_with_app_state(
+                app_state=self.app_state,
+                mode=mode,
+                first_step=first_step,
+                prevent_esc_on_caps_up=prevent_esc_on_caps_up,
+            )
 
-        # stateChange
-        new_state, new_prevent_esc_on_caps_up = self.try_process_state_change(key, state, prevent_esc_on_caps_up)
-        if new_state > -1:
-            app_state = AppState()
+        # mode Change
+        new_mode, new_prevent_esc_on_caps_up = self.try_process_mode_change(
+            key, mode, prevent_esc_on_caps_up
+        )
+        if new_mode > -1:
+            app_state = CurrentState()
             app_state.modificators = self.app_state.modificators
-            result = self.create_result_with_app_state(app_state, True, first_step=first_step,prevent_esc_on_caps_up=prevent_esc_on_caps_up)
-            result.state = new_state
+            result = self.create_result_with_app_state(
+                app_state,
+                True,
+                first_step=first_step,
+                prevent_esc_on_caps_up=prevent_esc_on_caps_up,
+            )
+            result.mode = new_mode
             result.prevent_esc_on_caps_up = new_prevent_esc_on_caps_up
             result.modificators = self.app_state.modificators
             return result
 
         # single step
-        result = self.try_process_single_step(key, state, first_step, prevent_esc_on_caps_up)
+        result = self.try_process_single_step(
+            key, mode, first_step, prevent_esc_on_caps_up
+        )
         if result is not None:
             return result
 
         # two-step
-        result = self.try_process_two_step(key, state, first_step, prevent_esc_on_caps_up)
+        result = self.try_process_two_step(
+            key, mode, first_step, prevent_esc_on_caps_up
+        )
         if result is not None:
             return result
 
         # command key
-        result = self.try_process_command_key(key, first_step=first_step,prevent_esc_on_caps_up=prevent_esc_on_caps_up)
+        result = self.try_process_command_key(
+            key, first_step=first_step, prevent_esc_on_caps_up=prevent_esc_on_caps_up
+        )
         if result is not None:
             return result
 
         # caps key
-        result = self.process_normal_and_insert_with_capital(key, state)
+        result = self.process_normal_and_insert_with_capital(key, mode)
         return result
 
-    def try_process_state_change(self, key: Keys, state: int, prevent_esc_on_caps_up) -> (Optional[int], bool):
+    def try_process_mode_change(
+        self, key: Keys, mode: int, prevent_esc_on_caps_up
+    ) -> (Optional[int], bool):
         if self.app_state.modificators.caps:
             # TODO mode keys in config?
             mode_off_key = Keys.Q
@@ -94,46 +117,54 @@ class KeyProcessor:
                 return OFF, True
 
             if key == mode_change_key:
-                return get_next_state(state), True
+                return get_next_mode(mode), True
 
             return -1, False
 
-        if key.is_esc() and state == INSERT:
-            return get_prev_state(state), prevent_esc_on_caps_up
+        if key.is_esc() and mode == INSERT:
+            return get_prev_mode(mode), prevent_esc_on_caps_up
 
         return -1, False
 
-    def process_capital(self, key: Keys, is_key_up: bool, state: int, prevent_esc_on_caps_up) -> Result:
+    def process_capital(
+        self, key: Keys, is_key_up: bool, mode: int, prevent_esc_on_caps_up
+    ) -> Result:
         new_prevent_esc_on_caps_up = prevent_esc_on_caps_up
-        new_state = state
-        if is_key_up and not new_prevent_esc_on_caps_up and state == INSERT:
-            new_state = NORMAL  # prev state at esc
+        new_mode = mode
+        if is_key_up and not new_prevent_esc_on_caps_up and mode == INSERT:
+            new_mode = NORMAL  # prev mode at esc
         if is_key_up and new_prevent_esc_on_caps_up:
             new_prevent_esc_on_caps_up = False
         modificators = self.get_next_modificators(key, is_key_up)  # only for CAPS?!
         result = self.create_result(
-            new_state, Keys.NONE, new_prevent_esc_on_caps_up, modificators, True
+            new_mode, Keys.NONE, new_prevent_esc_on_caps_up, modificators, True
         )
         return result
 
-    def process_modificators(self, key: Keys, is_key_up: bool, state: int, first_step, prevent_esc_on_caps_up) -> Result:
+    def process_modificators(
+        self, key: Keys, is_key_up: bool, mode: int, first_step, prevent_esc_on_caps_up
+    ) -> Result:
         modificators = self.get_next_modificators(key, is_key_up)
         result = self.create_result(
-            state, # TODO: is not needed here
+            mode,  # TODO: is not needed here
             first_step,
             prevent_esc_on_caps_up,
             modificators,
         )
         return result
 
-    def try_process_single_step(self, key: Keys, state: int, first_step, prevent_esc_on_caps_up) -> Optional[Result]:
+    def try_process_single_step(
+        self, key: Keys, mode: int, first_step, prevent_esc_on_caps_up
+    ) -> Optional[Result]:
         if self.app_state.modificators.caps or self.app_state.modificators.win:
             return None
-        if state != NORMAL:
+        if mode != NORMAL:
             return None
         if first_step != Keys.NONE:
             return None
-        result = self.try_process_first_step(key, state, first_step, prevent_esc_on_caps_up)
+        result = self.try_process_first_step(
+            key, mode, first_step, prevent_esc_on_caps_up
+        )
         if result:
             return result
         if key.is_first_step():
@@ -142,10 +173,19 @@ class KeyProcessor:
         send = self.config.common.get(key)
         if not send:
             return None
-        return self.create_result_with_app_state(self.app_state, True, send, state=state,first_step=first_step,prevent_esc_on_caps_up=prevent_esc_on_caps_up)
+        return self.create_result_with_app_state(
+            self.app_state,
+            True,
+            send,
+            mode=mode,
+            first_step=first_step,
+            prevent_esc_on_caps_up=prevent_esc_on_caps_up,
+        )
 
-    def try_process_two_step(self, key: Keys, state: int, first_step, prevent_esc_on_caps_up) -> Optional[Result]:
-        if state != NORMAL:
+    def try_process_two_step(
+        self, key: Keys, mode: int, first_step, prevent_esc_on_caps_up
+    ) -> Optional[Result]:
+        if mode != NORMAL:
             return None
         if self.app_state.modificators.caps or self.app_state.modificators.win:
             return None
@@ -158,7 +198,7 @@ class KeyProcessor:
         if not send or send == [None]:
             cmd = self.config.try_get_two_key_command(first_step, key)
         result = self.create_result(
-            state,
+            mode,
             Keys.NONE,
             prevent_esc_on_caps_up,
             self.app_state.modificators,
@@ -168,11 +208,13 @@ class KeyProcessor:
         )
         return result
 
-    def try_process_first_step(self, key: Keys, state: int, first_step: Keys, prevent_esc_on_caps_up) -> Optional[Result]:
+    def try_process_first_step(
+        self, key: Keys, mode: int, first_step: Keys, prevent_esc_on_caps_up
+    ) -> Optional[Result]:
         if first_step != Keys.NONE or not key.is_first_step():
             return None
         result = self.create_result(
-            state, # TODO: not needed here
+            mode,  # TODO: not needed here
             key,
             prevent_esc_on_caps_up,
             self.app_state.modificators,
@@ -180,14 +222,16 @@ class KeyProcessor:
         )
         return result
 
-    def process_normal_and_insert_with_capital(self, key: Keys, state: int) -> Optional[Result]:
-        if state == OFF or not self.app_state.modificators.caps:
+    def process_normal_and_insert_with_capital(
+        self, key: Keys, mode: int
+    ) -> Optional[Result]:
+        if mode == OFF or not self.app_state.modificators.caps:
             return None
         send = self.config.try_get_caps_send(key)
         if not send:
             return None
         result = self.create_result(
-            state,
+            mode,
             Keys.NONE,
             True,
             self.app_state.modificators,
@@ -198,7 +242,7 @@ class KeyProcessor:
 
     def create_result(
         self,
-        state: int,
+        mode: int,
         first_step: Keys,
         prevent_esc_on_caps_up,
         modificators,
@@ -206,14 +250,9 @@ class KeyProcessor:
         send: List[Keys] = [],
         cmd: str = "",
     ) -> Result:
-        app_state = AppState()
-        #app_state.state = state
-        # app_state.prevent_esc_on_caps_up = prevent_esc_on_caps_up
-        # app_state.modificators = modificators
         result = Result()
         result.first_step = first_step
-        result.state = state
-        #result.app_state = app_state
+        result.mode = mode
         result.modificators = modificators
         result.prevent_esc_on_caps_up = prevent_esc_on_caps_up
         result.send = send
@@ -222,11 +261,17 @@ class KeyProcessor:
         return result
 
     def create_result_with_app_state(
-        self, app_state, prevent_key_process=False, send: List[Keys] = [], state=-1, first_step=Keys.NONE, prevent_esc_on_caps_up=False
+        self,
+        app_state,
+        prevent_key_process=False,
+        send: List[Keys] = [],
+        mode=-1,
+        first_step=Keys.NONE,
+        prevent_esc_on_caps_up=False,
     ) -> Result:
         result = Result()
-        result.first_step =first_step
-        result.state=state
+        result.first_step = first_step
+        result.mode = mode
         result.app_state = app_state
         result.modificators = app_state.modificators
         result.prevent_esc_on_caps_up = prevent_esc_on_caps_up
@@ -261,12 +306,18 @@ class KeyProcessor:
 
         return modificators
 
-    def try_process_command_key(self, key: Keys, first_step:Keys,prevent_esc_on_caps_up):
+    def try_process_command_key(
+        self, key: Keys, first_step: Keys, prevent_esc_on_caps_up
+    ):
         if not self.app_state.modificators.caps:
             return None
         if key == Keys.BACKSPACE:  # TODO command to config
             return self.create_result_with_app_state(
-                self.app_state, True, [Keys.COMMAND_EXIT], first_step=first_step,prevent_esc_on_caps_up=prevent_esc_on_caps_up
+                self.app_state,
+                True,
+                [Keys.COMMAND_EXIT],
+                first_step=first_step,
+                prevent_esc_on_caps_up=prevent_esc_on_caps_up,
             )
 
     def try_update_modifiers_by_os(self, modifs_os: Modificators):

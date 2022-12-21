@@ -9,7 +9,7 @@
 # //oemminus    -
 # //oemplus     =
 
-caps: # tigger with CapsLock. Used in 1 (normal) and 2 (insert) state
+caps: # tigger with CapsLock. Used in 1 (normal) and 2 (insert) mode
   e: esc
   r: enter
   t: tab
@@ -73,6 +73,8 @@ i: # first step i
 
 
 d: # first step d
+  r: alt+4 # pycharm run window
+  d: alt+5 # pycharm debug window
   t: alt+f12 # pycharm show terminal
   z: ctrl+f7,ctrl+f8 # EvernoteFocusListTrick
 

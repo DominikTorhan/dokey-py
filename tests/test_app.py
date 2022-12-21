@@ -33,7 +33,7 @@ test_app_playlist = [
             (Keys.K, "d"),
             (Keys.K, "u"),
             (Keys.CAPS, "d"),
-            (Keys.F, "d"),  # state 2
+            (Keys.F, "d"),  # mode 2
             (Keys.F, "u"),
             (Keys.T, "d"),  # caps+t = Tab
             (Keys.T, "u"),
@@ -41,7 +41,7 @@ test_app_playlist = [
             (Keys.Z, "d"),  # nothing (insert mode)
             (Keys.Z, "u"),
             (Keys.CAPS, "d"),
-            (Keys.CAPS, "u"),  # state 1
+            (Keys.CAPS, "u"),  # mode 1
             (Keys.COMMA, "d"),  # page up
             (Keys.COMMA, "u"),
             (Keys.D, "d"),  # first step d

@@ -1,7 +1,7 @@
 import logging
 from logging.handlers import TimedRotatingFileHandler
 from app.app import App, TrayAppInterface, ListenerABC
-from app.app_state import NORMAL, OFF, INSERT
+from app.current_state import NORMAL, OFF, INSERT
 from os_pynput import PynpytListener
 import pystray
 from PIL import Image
@@ -12,21 +12,21 @@ TRAY_ICON_OFF = str(root / "assets" / "off.ico")
 TRAY_ICON_NORMAL = str(root / "assets" / "normal.ico")
 TRAY_ICON_INSERT = str(root / "assets" / "insert.ico")
 
-STARTING_STATE = NORMAL
+STARTING_MODE = NORMAL
 # TrayApp
 def start_tray_app():
-    def get_icon(state):
+    def get_icon(mode):
         path = TRAY_ICON_OFF
-        if state == NORMAL:
+        if mode == NORMAL:
             path = TRAY_ICON_NORMAL
-        if state == INSERT:
+        if mode == INSERT:
             path = TRAY_ICON_INSERT
         return Image.open(path)
 
-    def set_icon(state):
-        icon.icon = get_icon(state)
+    def set_icon(mode):
+        icon.icon = get_icon(mode)
 
-    icon = pystray.Icon("Dokey-py", icon=get_icon(STARTING_STATE))
+    icon = pystray.Icon("Dokey-py", icon=get_icon(STARTING_MODE))
     icon.run_detached()
 
     return set_icon, icon.stop
