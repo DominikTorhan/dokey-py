@@ -20,19 +20,17 @@ def get_next_mode(mode: int) -> int:
 class Result:
     def __init__(self):
         self.mode = -1
-        self.first_step = Keys.NONE
         self.app_state: CurrentState = None
         self.send: List[Keys] = []
         self.cmd = ""
         self.prevent_key_process: bool = False
-        self.modificators = None
         self.prevent_esc_on_caps_up = False
 
 
 class KeyProcessor:
-    def __init__(self, config):
+    def __init__(self, config, state):
         self.config: Config = config
-        self.app_state: CurrentState = None
+        self.state: CurrentState = state
 
     def process(
         self,
@@ -57,7 +55,7 @@ class KeyProcessor:
 
         if is_key_up:
             return self.create_result_with_app_state(
-                app_state=self.app_state,
+                app_state=self.state,
                 mode=mode,
                 first_step=first_step,
                 prevent_esc_on_caps_up=prevent_esc_on_caps_up,
@@ -69,7 +67,7 @@ class KeyProcessor:
         )
         if new_mode > -1:
             app_state = CurrentState()
-            app_state.modificators = self.app_state.modificators
+            app_state.modificators = self.state.modificators
             result = self.create_result_with_app_state(
                 app_state,
                 True,
@@ -78,7 +76,7 @@ class KeyProcessor:
             )
             result.mode = new_mode
             result.prevent_esc_on_caps_up = new_prevent_esc_on_caps_up
-            result.modificators = self.app_state.modificators
+            result.modificators = self.state.modificators
             return result
 
         # single step
@@ -109,7 +107,7 @@ class KeyProcessor:
     def try_process_mode_change(
         self, key: Keys, mode: int, prevent_esc_on_caps_up
     ) -> (Optional[int], bool):
-        if self.app_state.modificators.caps:
+        if self.state.modificators.caps:
             # TODO mode keys in config?
             mode_off_key = Keys.Q
             mode_change_key = Keys.F
@@ -156,7 +154,7 @@ class KeyProcessor:
     def try_process_single_step(
         self, key: Keys, mode: int, first_step, prevent_esc_on_caps_up
     ) -> Optional[Result]:
-        if self.app_state.modificators.caps or self.app_state.modificators.win:
+        if self.state.modificators.caps or self.state.modificators.win:
             return None
         if mode != NORMAL:
             return None
@@ -174,7 +172,7 @@ class KeyProcessor:
         if not send:
             return None
         return self.create_result_with_app_state(
-            self.app_state,
+            self.state,
             True,
             send,
             mode=mode,
@@ -187,7 +185,7 @@ class KeyProcessor:
     ) -> Optional[Result]:
         if mode != NORMAL:
             return None
-        if self.app_state.modificators.caps or self.app_state.modificators.win:
+        if self.state.modificators.caps or self.state.modificators.win:
             return None
 
         if first_step == Keys.NONE:
@@ -201,7 +199,7 @@ class KeyProcessor:
             mode,
             Keys.NONE,
             prevent_esc_on_caps_up,
-            self.app_state.modificators,
+            self.state.modificators,
             True,
             send,
             cmd=cmd,
@@ -217,7 +215,7 @@ class KeyProcessor:
             mode,  # TODO: not needed here
             key,
             prevent_esc_on_caps_up,
-            self.app_state.modificators,
+            self.state.modificators,
             key.is_letter_or_digit(),
         )
         return result
@@ -225,7 +223,7 @@ class KeyProcessor:
     def process_normal_and_insert_with_capital(
         self, key: Keys, mode: int
     ) -> Optional[Result]:
-        if mode == OFF or not self.app_state.modificators.caps:
+        if mode == OFF or not self.state.modificators.caps:
             return None
         send = self.config.try_get_caps_send(key)
         if not send:
@@ -234,7 +232,7 @@ class KeyProcessor:
             mode,
             Keys.NONE,
             True,
-            self.app_state.modificators,
+            self.state.modificators,
             True,
             send,
         )
@@ -251,13 +249,18 @@ class KeyProcessor:
         cmd: str = "",
     ) -> Result:
         result = Result()
-        result.first_step = first_step
+        #result.first_step = first_step
         result.mode = mode
-        result.modificators = modificators
+        #result.modificators = modificators
         result.prevent_esc_on_caps_up = prevent_esc_on_caps_up
         result.send = send
         result.prevent_key_process = prevent_key_process
         result.cmd = cmd
+        self.state.first_step = first_step
+        if mode > -1:
+            self.state.mode = mode
+        self.state.modificators = modificators
+        self.state.prevent_esc_on_caps_up = prevent_esc_on_caps_up
         return result
 
     def create_result_with_app_state(
@@ -270,22 +273,27 @@ class KeyProcessor:
         prevent_esc_on_caps_up=False,
     ) -> Result:
         result = Result()
-        result.first_step = first_step
+        #result.first_step = first_step
         result.mode = mode
         result.app_state = app_state
-        result.modificators = app_state.modificators
+        #result.modificators = app_state.modificators
         result.prevent_esc_on_caps_up = prevent_esc_on_caps_up
         result.send = send
         result.prevent_key_process = prevent_key_process
+        self.state.first_step = first_step
+        if mode > -1:
+            self.state.mode = mode
+        self.state.modificators = app_state.modificators
+        self.state.prevent_esc_on_caps_up = prevent_esc_on_caps_up
         return result
 
     def get_next_modificators(self, key: Keys, is_key_up: bool) -> Modificators:
         down = not is_key_up
-        control = self.app_state.modificators.control
-        shift = self.app_state.modificators.shift
-        alt = self.app_state.modificators.alt
-        win = self.app_state.modificators.win
-        caps = self.app_state.modificators.caps
+        control = self.state.modificators.control
+        shift = self.state.modificators.shift
+        alt = self.state.modificators.alt
+        win = self.state.modificators.win
+        caps = self.state.modificators.caps
         if key.is_control():
             control = down
         if key.is_shift():
@@ -309,11 +317,11 @@ class KeyProcessor:
     def try_process_command_key(
         self, key: Keys, first_step: Keys, prevent_esc_on_caps_up
     ):
-        if not self.app_state.modificators.caps:
+        if not self.state.modificators.caps:
             return None
         if key == Keys.BACKSPACE:  # TODO command to config
             return self.create_result_with_app_state(
-                self.app_state,
+                self.state,
                 True,
                 [Keys.COMMAND_EXIT],
                 first_step=first_step,
@@ -328,11 +336,11 @@ class KeyProcessor:
         if not modifs_os:
             return
 
-        if not modifs_os.win and self.app_state.modificators.win:
-            self.app_state.modificators.win = False  # for windows lock win+l issue
-        if not modifs_os.control and self.app_state.modificators.control:
-            self.app_state.modificators.control = False
-        if not modifs_os.shift and self.app_state.modificators.shift:
-            self.app_state.modificators.shift = False
-        if not modifs_os.alt and self.app_state.modificators.alt:
-            self.app_state.modificators.alt = False
+        if not modifs_os.win and self.state.modificators.win:
+            self.state.modificators.win = False  # for windows lock win+l issue
+        if not modifs_os.control and self.state.modificators.control:
+            self.state.modificators.control = False
+        if not modifs_os.shift and self.state.modificators.shift:
+            self.state.modificators.shift = False
+        if not modifs_os.alt and self.state.modificators.alt:
+            self.state.modificators.alt = False

@@ -35,12 +35,13 @@ class App:
         self.config: Config = Config.from_file(config_path)
         self.listener: ListenerABC = listener
         self.tray_app_interface: TrayAppInterface = tray_app_interface
-        self.processor: KeyProcessor = KeyProcessor(self.config)
         # app state vars
-        self.app_state = CurrentState()
-        self.prevent_esc_on_caps_up: bool = False
-        self.mode: int = NORMAL
-        self.first_step: Keys = Keys.NONE
+        self.state = CurrentState()
+        self.state.mode = NORMAL
+        # self.prevent_esc_on_caps_up: bool = False
+        # self.mode: int = NORMAL
+        # self.first_step: Keys = Keys.NONE
+        self.processor: KeyProcessor = KeyProcessor(self.config, self.state)
 
 
     def main(self):
@@ -55,29 +56,32 @@ class App:
         """Main function to handle keyboard event. It is kind of iteration in main while loop."""
         logger.info(f"EVENT: {key}, vk{str(key.value)} {'up' if is_up else 'down'}")
 
-        self.processor.app_state = self.app_state
+        #self.processor.app_state = self.state
+        mode = self.state.mode
+        first_step = self.state.first_step
+        prevent_esc_on_caps_up = self.state.prevent_esc_on_caps_up
         result = self.processor.process(
             key=key,
             is_key_up=is_up,
-            mode=self.mode,
+            mode=mode,
             modifs_os=modifs_os,
-            first_step=self.first_step,
-            prevent_esc_on_caps_up=self.prevent_esc_on_caps_up
+            first_step=first_step,
+            prevent_esc_on_caps_up=prevent_esc_on_caps_up
         )
         if not result:
             return None, False
         if not result.mode or isinstance(result.mode, CurrentState):
             i = 0
 
-        self.app_state.modificators = result.modificators
-        self.prevent_esc_on_caps_up = result.prevent_esc_on_caps_up
-        self.first_step = result.first_step
+        # self.app_state.modificators = result.modificators
+        self.state.prevent_esc_on_caps_up = result.prevent_esc_on_caps_up
+        # self.first_step = result.first_step
         mode_changed = False
         if result.mode > -1:
             mode_changed = True
-            self.mode = result.mode
+            self.state.mode = result.mode
         if mode_changed and self.tray_app_interface:
-            self.tray_app_interface.set_icon(self.mode)
+            self.tray_app_interface.set_icon(self.state.mode)
 
         # terminate app
         if Keys.COMMAND_EXIT in result.send:

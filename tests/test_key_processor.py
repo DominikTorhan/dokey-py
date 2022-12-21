@@ -20,14 +20,14 @@ class TestPlaylist(unittest.TestCase):
 
         self.playlist_data = playlist_data["playlist"]
 
-    def result_to_string(self, result: Result) -> str:
+    def result_to_string(self, result: Result, first_step, modificators) -> str:
         if not result:
             return "None"
         string = ""
 
         prev = "*" if result.prevent_esc_on_caps_up else ""
 
-        s = f"{str(result.mode)},{result.first_step.to_string()},{result.modificators.to_string()}{prev}"
+        s = f"{str(result.mode)},{first_step.to_string()},{modificators.to_string()}{prev}"
         # result.app_state.to_string(result.state, result.first_step)
         string += s
         string += " "
@@ -41,7 +41,8 @@ class TestPlaylist(unittest.TestCase):
 
     def test_key_processor(self):
         config = Config.from_file(CONFIG_PATH)
-        processor = KeyProcessor(config)
+        state = CurrentState()
+        processor = KeyProcessor(config, state)
 
         playlist = self.playlist_data
 
@@ -73,8 +74,13 @@ class TestPlaylist(unittest.TestCase):
             key = Keys.from_string(inputs[1])
             is_up = inputs[2] == "up"
 
+            state.mode = mode
+            state.first_step = first_step
+            state.modificators = modificators
+            state.prevent_esc_on_caps_up = prevent_esc_on_caps_up
+
             # main call
-            processor.app_state = app_state
+            #processor.app_state = app_state
             if i == 1:
                 x = 0
             try:
@@ -88,7 +94,7 @@ class TestPlaylist(unittest.TestCase):
             except:
                 x = 0
 
-            actual = self.result_to_string(result)
+            actual = self.result_to_string(result, state.first_step, state.modificators)
 
             if expected != actual:
                 x = 0
