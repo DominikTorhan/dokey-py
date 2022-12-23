@@ -2,9 +2,10 @@ import unittest
 from pathlib import Path
 import yaml
 from app.current_state import CurrentState
-from app.key_processor import Result, KeyProcessor
+from app.events import SendEvent, CMDEvent, WriteEvent
+from app.key_processor import Event, KeyProcessor
 from app.config import Config
-from app.keys import Keys, keys_to_send
+from app.keys import Keys, string_to_multi_keys
 from app.modificators import Modificators
 
 CONFIG_PATH = Path(__file__).parent.parent / "app" / "config.yaml"
@@ -19,25 +20,6 @@ class TestPlaylist(unittest.TestCase):
             playlist_data: dict = yaml.safe_load(f)
 
         self.playlist_data = playlist_data["playlist"]
-
-    def result_to_string(self, result: Result, first_step, modificators) -> str:
-        if not result:
-            return "None"
-        string = ""
-
-        prev = "*" if result.prevent_esc_on_caps_up else ""
-
-        s = f"{str(result.mode)},{first_step.to_string()},{modificators.to_string()}{prev}"
-        # result.app_state.to_string(result.state, result.first_step)
-        string += s
-        string += " "
-        if result.send:
-            string += keys_to_send(result.send)
-        else:
-            string += "nil"
-        if result.prevent_key_process:
-            string += " PREV"
-        return string
 
     def test_key_processor(self):
         config = Config.from_file(CONFIG_PATH)
@@ -79,24 +61,58 @@ class TestPlaylist(unittest.TestCase):
             state.modificators = modificators
             state.prevent_esc_on_caps_up = prevent_esc_on_caps_up
 
-            # main call
-            #processor.app_state = app_state
-            if i == 1:
+            if input == "1,i, d2 down":
                 x = 0
+
+            # main call
             try:
-                result = processor.process(
+                event = processor.process(
                     key=key,
                     is_key_up=is_up,
-                    mode=mode,
-                    first_step=first_step,
-                    prevent_esc_on_caps_up=prevent_esc_on_caps_up,
                 )
             except:
                 x = 0
 
-            actual = self.result_to_string(result, state.first_step, state.modificators)
+            if not event:
+                self.assertEqual(expected, "None")
+                continue
 
-            if expected != actual:
-                x = 0
+            if isinstance(event, CMDEvent):
+                self.assertEqual(1, state.mode)
+                self.assertEqual(Keys.NONE, state.first_step)
+                self.assertEqual(expected, event.cmd)
+                continue
+            if isinstance(event, WriteEvent):
+                self.assertEqual(1, state.mode)
+                self.assertEqual(Keys.NONE, state.first_step)
+                self.assertEqual(expected, event.text)
+                continue
+            # 0||c|||PREV
 
-            self.assertEqual(expected, actual)
+            strs = expected.split("|")
+            mode = int(strs[0])
+            first_step = Keys.from_string(strs[1])
+            modificators = strs[2]
+
+            prevent_esc_on_caps_up = "*" in strs[3]
+
+            send = []
+            if strs[4]:
+                send = string_to_multi_keys(strs[4])
+            prevent_key_process = "PREV" in strs[5]
+
+            self.assertEqual(mode, state.mode)
+            self.assertEqual(first_step, state.first_step)
+            self.assertEqual(modificators, state.modificators.to_string())
+            self.assertEqual(prevent_esc_on_caps_up, state.prevent_esc_on_caps_up)
+
+            actual_send = []
+            actual_prevent_key_process = True
+            if isinstance(event, SendEvent):
+                actual_send = event.send
+            if isinstance(event, Event):
+                actual_prevent_key_process = event.prevent_key_process
+            self.assertEqual(send, actual_send)
+            actual_cmd = ""
+            self.assertEqual("", actual_cmd)
+            self.assertEqual(prevent_key_process, actual_prevent_key_process)

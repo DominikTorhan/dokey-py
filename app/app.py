@@ -1,8 +1,10 @@
+from typing import Callable, Any, List
 import logging
 import os
 from abc import ABC, abstractmethod
 from app.current_state import CurrentState, OFF, NORMAL
-from app.key_processor import KeyProcessor, Result
+from app.events import Event, SendEvent, CMDEvent, DoKeyEvent
+from app.key_processor import KeyProcessor
 from app.config import Config
 from app.keys import Keys, keys_to_send
 from app.modificators import Modificators
@@ -17,11 +19,19 @@ class TrayAppInterface:
         self.stop = stop
 
 
+
+
+class OSEvent:
+    def __init__(self):
+        self.key: Keys = Keys.NONE
+        self.is_key_up: bool = False
+        self.modifs_os: Modificators = Modificators()
+
+
 class ListenerABC(ABC):
     @abstractmethod
-    def run(self, func):
+    def run(self, func: Callable[[OSEvent], Any]):
         # starts listener
-        # func signature Keys, bool -> str, bool
         pass
 
 
@@ -35,14 +45,9 @@ class App:
         self.config: Config = Config.from_file(config_path)
         self.listener: ListenerABC = listener
         self.tray_app_interface: TrayAppInterface = tray_app_interface
-        # app state vars
         self.state = CurrentState()
         self.state.mode = NORMAL
-        # self.prevent_esc_on_caps_up: bool = False
-        # self.mode: int = NORMAL
-        # self.first_step: Keys = Keys.NONE
         self.processor: KeyProcessor = KeyProcessor(self.config, self.state)
-
 
     def main(self):
 
@@ -50,56 +55,40 @@ class App:
         self.listener.run(self.handle_keyboard_event)
         logger.info("Terminate!")
 
-    def handle_keyboard_event(
-        self, key: Keys, is_up: bool, modifs_os: Modificators = None
-    ):
+    def handle_keyboard_event(self, trigger: OSEvent) -> Event:
         """Main function to handle keyboard event. It is kind of iteration in main while loop."""
-        logger.info(f"EVENT: {key}, vk{str(key.value)} {'up' if is_up else 'down'}")
-
-        #self.processor.app_state = self.state
-        mode = self.state.mode
-        first_step = self.state.first_step
-        prevent_esc_on_caps_up = self.state.prevent_esc_on_caps_up
-        result = self.processor.process(
-            key=key,
-            is_key_up=is_up,
-            mode=mode,
-            modifs_os=modifs_os,
-            first_step=first_step,
-            prevent_esc_on_caps_up=prevent_esc_on_caps_up
+        logger.debug(
+            f"EVENT: {trigger.key}, vk{str(trigger.key.value)} {'up' if trigger.is_key_up else 'down'}"
         )
-        if not result:
-            return None, False
-        if not result.mode or isinstance(result.mode, CurrentState):
-            i = 0
 
-        # self.app_state.modificators = result.modificators
-        self.state.prevent_esc_on_caps_up = result.prevent_esc_on_caps_up
-        # self.first_step = result.first_step
-        mode_changed = False
-        if result.mode > -1:
-            mode_changed = True
-            self.state.mode = result.mode
-        if mode_changed and self.tray_app_interface:
+        event = self.processor.process(
+            key=trigger.key,
+            is_key_up=trigger.is_key_up,
+            modifs_os=trigger.modifs_os,
+        )
+        if not event:
+            return Event()
+
+        if self.tray_app_interface:
             self.tray_app_interface.set_icon(self.state.mode)
 
-        # terminate app
-        if Keys.COMMAND_EXIT in result.send:
+        if isinstance(event, DoKeyEvent):
             if self.tray_app_interface:
                 self.tray_app_interface.stop()
-            return [Keys.COMMAND_EXIT], True  # TODO: EXit
+
+        if isinstance(event, SendEvent):
+            friendly_keys = keys_to_send(event.send)
+            logger.info(f"SEND: {friendly_keys}")  # TODO: add trigger (eg. f,f -> f12)
+            # terminate app
+            # if Keys.COMMAND_EXIT in event.send: # TODO
+            #     if self.tray_app_interface:
+            #         self.tray_app_interface.stop()
+            #return event
 
         # Execute custom command
-        if result.cmd:
-            cmd = result.cmd
+        if isinstance(event, CMDEvent):
+            cmd = event.cmd
             logger.info(f"EXEC CMD: {cmd}")
             os.popen(cmd)  # popen for proper thread/subprocess
-            return None, result.prevent_key_process
 
-        if not result.send or len(result.send) == 0:
-            return None, result.prevent_key_process
-
-        send = result.send
-        friendly_keys = keys_to_send(send)
-        logger.info(f"SEND: {friendly_keys}")  # TODO: add trigger (eg. f,f -> f12)
-        return send, True
+        return event

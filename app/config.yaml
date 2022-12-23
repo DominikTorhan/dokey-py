@@ -66,15 +66,24 @@ f: # first step f
   # other shortcuts
   s: shift+esc # shift ESC
 
+a:
+  a: __write__<test_override>
+  b: __write__<test_override>
+
 i: # first step i
   j: end, enter # Insert line below
   k: up, end, enter # Insert line above
   c: ctrl+/ # comment / uncomment code in pycharm
+  # other features, for now only for tests
+  d1: __command__<start chrome /new-tab> # browser
+  d2: __write__<my_text>
 
 
 d: # first step d
   r: alt+4 # pycharm run window
+  p: ctrl+shift+quote
   d: alt+5 # pycharm debug window
+  f: alt+3 # pycharm find window
   t: alt+f12 # pycharm show terminal
   z: ctrl+f7,ctrl+f8 # EvernoteFocusListTrick
 

@@ -341,6 +341,7 @@ keyboard_to_dokey_map = {
     "semicolon": Keys.SEMICOLON,
     "'": Keys.APOSTROPHE,
     "apostrophe": Keys.APOSTROPHE,
+    "quote": Keys.APOSTROPHE,
     "-": Keys.MINUS,
     "minus": Keys.MINUS,
     "=": Keys.EQUAL,
@@ -372,6 +373,7 @@ def string_to_multi_keys(s: str) -> []:
 
 
 def keys_to_send(keys: List[Keys]) -> str:
+    #assert isinstance(keys, type(List[Keys]))
     send = ""
     for key in keys:
         send += key.to_string()

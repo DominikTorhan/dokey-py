@@ -3,85 +3,92 @@
 #   AppState: {state},{firstStep},{modificators}{"*" as prevent next ESC flag}
 # Output:{appState} {send} {preventKeyProcess}
 #     0,,c f down           1,,c* ? ?
+# Output: mode|firstStep|modificators|*|send|preventKeyProcess
 
 playlist:
-  - {input: "0,, capital down", output: "0,,c nil PREV"}
-  - {input: "0,,* capital down", output: "0,,c* nil PREV"}
-  - {input: "0,,c capital up", output: "0,, nil PREV"}
-  - {input: "0,,c* capital up", output: "0,, nil PREV"}
-  - {input: "1,,c capital down", output: "1,,c nil PREV"}
-  - {input: "1,,c capital up", output: "1,, nil PREV"}
-  - {input: "1,,c* capital up", output: "1,, nil PREV"}
-  - {input: "2,, capital down", output: "2,,c nil PREV"}
-  - {input: "2,,c* capital up", output: "2,, nil PREV"}
-  - {input: "1,, lshiftkey down", output: "1,,+ nil"}
-  - {input: "1,,+ lshiftkey up", output: "1,, nil"}
-  - {input: "1,,+ lshiftkey down", output: "1,,+ nil"}
-  - {input: "2,,+ lshiftkey up", output: "2,, nil"}
-  - {input: "1,, win down", output: "1,,w nil"}
-  - {input: "1,,w win up", output: "1,, nil"}
-  # status changed (next)
-  - {input: "0,,c f down", output: "1,,c* nil PREV"}
-  - {input: "1,,c f down", output: "2,,c* nil PREV"}
-  # status changed (prev)
-  - {input: "2,,c capital up", output: "1,, nil PREV"}
-  - {input: "2,, escape down", output: "1,, nil PREV"}
-  # status changed (OFF)
-  - {input: "0,,c q down", output: "0,,c* nil PREV"}
-  - {input: "1,,c q down", output: "0,,c* nil PREV"}
-  - {input: "2,,c q down", output: "0,,c* nil PREV"}
-    # with caps
-  - {input: "1,,c h down", output: "1,,c* backspace PREV"}
-  - {input: "2,,c h down", output: "2,,c* backspace PREV"}
-  - {input: "1,,c y down", output: "1,,c* ctrl+backspace PREV"}
-  - {input: "1,,c l down", output: "1,,c* del PREV"}
-  - {input: "1,,c d down", output: "1,,c* del PREV"}
-  - {input: "1,,c j down", output: "1,,c* enter PREV"}
-  - {input: "1,,c r down", output: "1,,c* enter PREV"}
-  - {input: "1,,c t down", output: "1,,c* tab PREV"}
-  - {input: "1,,c g down", output: "1,,c* shift+tab PREV"}
-  - {input: "1,,c c down", output: "1,,c* shift+f10 PREV"}
-  - {input: "1,,c v down", output: "1,,c* ctrl+shift+v PREV"}
-  - {input: "1,,c m down", output: "1,,c* ctrl+tab PREV"}
-  - {input: "1,,c comma down", output: "1,,c* ctrl+shift+tab PREV"}
-  - {input: "1,,c n down", output: "1,,c* ctrl+enter PREV"}
+  - {input: "0,, capital down", output: "0||c|||PREV"}
+  - {input: "0,,* capital down", output: "0||c|*||PREV"}
+  - {input: "0,,c capital up", output: "0|||||PREV"}
+  - {input: "0,,c* capital up", output: "0|||||PREV"}
+  - {input: "1,,c capital down", output: "1||c|||PREV"}
+  - {input: "1,,c capital up", output: "1|||||PREV"}
+  - {input: "1,,c* capital up", output: "1|||||PREV"}
+  - {input: "2,, capital down", output: "2||c|||PREV"}
+  - {input: "2,,c* capital up", output: "2|||||PREV"}
+  - {input: "1,, lshiftkey down", output: "1||+|||"}
+  - {input: "1,,+ lshiftkey up", output: "1|||||"}
+  - {input: "1,,+ lshiftkey down", output: "1||+|||"}
+  - {input: "2,,+ lshiftkey up", output: "2|||||"}
+  - {input: "1,, win down", output: "1||w|||"}
+  - {input: "1,,w win up", output: "1|||||"}
+   # status changed (next)
+  - {input: "0,,c f down", output: "1||c|*||PREV"}
+  - {input: "1,,c f down", output: "2||c|*||PREV"}
+   # status changed (prev)
+  - {input: "2,,c capital up", output: "1|||||PREV"}
+  - {input: "2,, escape down", output: "1|||||PREV"}
+   # status changed (OFF)
+  - {input: "0,,c q down", output: "0||c|*||PREV"}
+  - {input: "1,,c q down", output: "0||c|*||PREV"}
+  - {input: "2,,c q down", output: "0||c|*||PREV"}
+     # with caps
+  - {input: "1,,c h down", output: "1||c|*|backspace|PREV"}
+  - {input: "2,,c h down", output: "2||c|*|backspace|PREV"}
+  - {input: "1,,c y down", output: "1||c|*|ctrl+backspace|PREV"}
+  - {input: "1,,c l down", output: "1||c|*|del|PREV"}
+  - {input: "1,,c d down", output: "1||c|*|del|PREV"}
+  - {input: "1,,c j down", output: "1||c|*|enter|PREV"}
+  - {input: "1,,c r down", output: "1||c|*|enter|PREV"}
+  - {input: "1,,c t down", output: "1||c|*|tab|PREV"}
+  - {input: "1,,c g down", output: "1||c|*|shift+tab|PREV"}
+  - {input: "1,,c c down", output: "1||c|*|shift+f10|PREV"}
+  - {input: "1,,c v down", output: "1||c|*|ctrl+shift+v|PREV"}
+  - {input: "1,,c m down", output: "1||c|*|ctrl+tab|PREV"}
+  - {input: "1,,c comma down", output: "1||c|*|ctrl+shift+tab|PREV"}
+  - {input: "1,,c n down", output: "1||c|*|ctrl+enter|PREV"}
   - {input: "1,,c a down", output: "None"}
   - {input: "1,,c z down", output: "None"}
   - {input: "1,,c x down", output: "None"}
   - {input: "1,,c s down", output: "None"}
 
   # single step
-  - {input: "1,, h down", output: "1,, left PREV"}
-  - {input: "1,, h up", output: "1,, nil"}
-  - {input: "1,, j down", output: "1,, down PREV"}
-  - {input: "1,, k down", output: "1,, up PREV"}
-  - {input: "1,, l down", output: "1,, right PREV"}
-  - {input: "1,,% l down", output: "1,,% right PREV"}
+  - {input: "1,, h down", output: "1||||left|PREV"}
+  - {input: "1,, h up", output: "1|||||"}
+  - {input: "1,, j down", output: "1||||down|PREV"}
+  - {input: "1,, k down", output: "1||||up|PREV"}
+  - {input: "1,, l down", output: "1||||right|PREV"}
+  - {input: "1,,% l down", output: "1||%||right|PREV"}
   - {input: "1,,w l down", output: "None"} # win modificator
-  - {input: "1,, n down", output: "1,, home PREV"}
-  - {input: "1,, m down", output: "1,, page down PREV"}
-  - {input: "1,, comma down", output: "1,, page up PREV"}
-  - {input: "1,, period down", output: "1,, end PREV"}
-  - {input: "1,, y down", output: "1,, ctrl+left PREV"}
-  - {input: "1,, o down", output: "1,, ctrl+right PREV"}
-  - {input: "1,, z down", output: "1,, ctrl+z PREV"}
-  - {input: "1,, x down", output: "1,, ctrl+x PREV"}
-  - {input: "1,, c down", output: "1,, ctrl+c PREV"}
-  - {input: "1,, v down", output: "1,, ctrl+v PREV"}
+  - {input: "1,, n down", output: "1||||home|PREV"}
+  - {input: "1,, m down", output: "1||||page down|PREV"}
+  - {input: "1,, comma down", output: "1||||page up|PREV"}
+  - {input: "1,, period down", output: "1||||end|PREV"}
+  - {input: "1,, y down", output: "1||||ctrl+left|PREV"}
+  - {input: "1,, o down", output: "1||||ctrl+right|PREV"}
+  - {input: "1,, z down", output: "1||||ctrl+z|PREV"}
+  - {input: "1,, x down", output: "1||||ctrl+x|PREV"}
+  - {input: "1,, c down", output: "1||||ctrl+c|PREV"}
+  - {input: "1,, v down", output: "1||||ctrl+v|PREV"}
   - {input: "1,, d3 down", output: "None"} # missing send, num 3 in normal mode
   # single step, press first step
-  - {input: "1,, f down", output: "1,f, nil PREV"}
-  - {input: "1,, q down", output: "1,q, nil PREV"}
+  - {input: "1,, f down", output: "1|f||||PREV"}
+  - {input: "1,, q down", output: "1|q||||PREV"}
   # two step
-  - {input: "1,f, d1 down", output: "1,, f1 PREV"}
-  - {input: "1,f, d2 down", output: "1,, f2 PREV"}
-  - {input: "1,f, f down", output: "1,, f12 PREV"}
-  - {input: "1,f,% f down", output: "1,,% f12 PREV"} # with alt hold manual. alt+f12
-  - {input: "1,f, s down", output: "1,, shift+esc PREV"}
-  - {input: "1,f,% s down", output: "1,,% shift+esc PREV"} # shift+esc with alt manual. Same as shift+alt+esc
-  - {input: "1,i, j down", output: "1,, end,enter PREV"}
-  - {input: "1,i, k down", output: "1,, up,end,enter PREV"}
+  - {input: "1,f, d1 down", output: "1||||f1|PREV"}
+  - {input: "1,f, d2 down", output: "1||||f2|PREV"}
+  - {input: "1,f, f down", output: "1||||f12|PREV"}
+  - {input: "1,f,% f down", output: "1||%||f12|PREV"} # with alt hold manual. alt+f12
+  - {input: "1,f, s down", output: "1||||shift+esc|PREV"}
+  - {input: "1,f,% s down", output: "1||%||shift+esc|PREV"} # shift+esc with alt manual. Same as shift+alt+esc
+  - {input: "1,i, j down", output: "1||||end,enter|PREV"}
+  - {input: "1,i, k down", output: "1||||up,end,enter|PREV"}
   # insert mode (no action)
   - {input: "2,, f down", output: "None"}
-  - {input: "2,, f up", output: "2,, nil"}
+  - {input: "2,, f up", output: "2|||||"}
   - {input: "2,, d1 down", output: "None"}
+  # cmd test
+  - {input: "1,i, d1 down", output: "start chrome /new-tab"}
+  # write test
+  - {input: "1,i, d2 down", output: "my_text"}
+  # mouse test
+  #- {input: "1,i, m down", output: "None"}

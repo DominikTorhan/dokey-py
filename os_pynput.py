@@ -1,7 +1,8 @@
 import logging
-from typing import List
+from typing import List, Optional
 from pynput import keyboard
-from app.app import ListenerABC
+from app.app import ListenerABC, OSEvent
+from app.events import SendEvent, DoKeyEvent, Event, CMDEvent, WriteEvent
 from app.modificators import Modificators
 from app.keys import Keys, shift_keys, control_keys, alt_keys, win_keys
 from pynput.keyboard import Key, Controller, KeyCode
@@ -49,6 +50,13 @@ def get_modif_state():
     logger.debug(f"os modifs {repr(modifs)}")
     return modifs
 
+def get_foreground_window_title() -> Optional[str]:
+    hwnd = user32_dll.GetForegroundWindow()
+    length = user32_dll.GetWindowTextLengthW(hwnd)
+    buf = ctypes.create_unicode_buffer(length + 1)
+    user32_dll.GetWindowTextW(hwnd, buf, length + 1)
+    return buf.value if buf.value else None
+
 
 class PynpytListener(ListenerABC):
     def __init__(self):
@@ -77,22 +85,37 @@ class PynpytListener(ListenerABC):
         if is_capslock_on():
             return True
         modifs_os = get_modif_state()
+        window_title = get_foreground_window_title()
         is_up = msg == 257 or msg == 261
         key = Keys(data.vkCode)
-        send, prev = self.func(key, is_up, modifs_os)
-        if send:
-            if Keys.COMMAND_EXIT in send:
-                self.listener.stop()
-                self.listener._suppress = True
-                return False
+        os_event = OSEvent()
+        os_event.key = key
+        os_event.is_key_up = is_up
+        os_event.modifs_os = modifs_os
+        event = self.func(os_event)
+        if isinstance(event, DoKeyEvent):
+            self.listener.stop()
+            self.listener._suppress = True
+            return False
+        if isinstance(event, SendEvent):
             self.is_sending = True
-            self.send_keys(send)
+            self.send_keys(event.send)
             self.is_sending = False
             self.listener._suppress = True
             return False
-        if prev:
+        if isinstance(event, CMDEvent):
             self.listener._suppress = True
             return False
+        if isinstance(event, WriteEvent):
+            self.is_sending = True
+            self.write_text(event.text)
+            self.is_sending = False
+            self.listener._suppress = True
+            return False
+        if isinstance(event, Event):
+            if event.prevent_key_process:
+                self.listener._suppress = True
+                return False
         return True
 
     def send_keys(self, send: List[Keys]):
@@ -111,3 +134,18 @@ class PynpytListener(ListenerABC):
                 keyboard.release(key_code)
             modifs = []
         logger.debug("__SENT__")
+
+    def write_text(self, text: str):
+        logger.info(f"WRITE_EVENT: {text}")
+        keyboard = Controller()
+        for char in text:
+            keyboard.press(char)
+            keyboard.release(char)
+
+    def exec_mouse(self):
+        from pynput.mouse import Controller
+        mouse = Controller()
+        mouse.position = (10, 10)
+
+        #mouse.
+        pass

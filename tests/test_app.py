@@ -1,5 +1,8 @@
 import unittest
 from pathlib import Path
+
+from app.app import OSEvent, Event
+from app.events import SendEvent, DoKeyEvent
 from app.keys import Keys, keys_to_send
 from main import App, ListenerABC
 
@@ -67,13 +70,19 @@ class TestListener(ListenerABC):
         while True:
             key, up = next(gen_read)
             is_up = up == "u"
-            send, prev = func(key, is_up)
-            if send and len(send) > 0:
-                if Keys.COMMAND_EXIT in send:
-                    break
+            trigger = OSEvent()
+            trigger.key = key
+            trigger.is_key_up = is_up
+            event: Event = func(trigger)
+            if isinstance(event, DoKeyEvent):
+                # exit
+                break
+            if isinstance(event, SendEvent):
+                # if Keys.COMMAND_EXIT in event.send:
+                #     break
                 expected = next(gen_send)
-                send_keyboard = keys_to_send(send)
-                print(f"send {send_keyboard} (expected: {expected})")
+                send_keyboard = keys_to_send(event.send)
+                # print(f"send {send_keyboard} (expected: {expected})")
                 assert send_keyboard == expected
 
 

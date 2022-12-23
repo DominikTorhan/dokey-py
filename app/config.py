@@ -1,9 +1,10 @@
 import os
 import logging
-from typing import Dict, List, Any, Union
+from typing import Dict, List, Any, Union, Optional
 import yaml
 from pathlib import Path
 
+from app.events import SendEvent, CMDEvent, WriteEvent
 from app.keys import Keys, string_to_multi_keys
 
 
@@ -15,8 +16,7 @@ class Config:
 
         self.caps = {}
         self.common = {}
-        self.two_steps = {}
-        self.two_steps_commands = {}
+        self.two_step_events = {}
 
     @classmethod
     def from_file(cls, path: Union[str, Path] = "config.yaml"):
@@ -25,14 +25,13 @@ class Config:
             config_data: dict = yaml.safe_load(f)
         config.caps = config.convert_dict(config_data.pop("caps"))
         config.common = config.convert_dict(config_data.pop("common"))
+
         dct = {}
-        for ts in config_data:
-            dct[Keys.from_string(ts)] = config.convert_dict(config_data[ts])
-        config.two_steps = dct
-        dct = {}
-        for ts in config_data:
-            dct[Keys.from_string(ts)] = config.convert_dict_commands(config_data[ts])
-        config.two_steps_commands = dct
+        for fs in config_data:
+            events = config._convert_dict_events(config_data[fs])
+            dct[Keys.from_string(fs)] = events
+        config.two_step_events = dct
+
         config.try_load_users_config(path)
         return config
 
@@ -42,11 +41,13 @@ class Config:
             return
         with open(user_config, "r") as f:
             config_data: dict = yaml.safe_load(f)
-        dct = {}
-        for ts in config_data:
-            dct[Keys.from_string(ts)] = self.convert_dict_commands(config_data[ts])
-        # TODO: fix override
-        self.two_steps_commands.update(dct)
+        for fs in config_data:
+            events = self._convert_dict_events(config_data[fs])
+            first_step = Keys.from_string(fs)
+            if first_step not in self.two_step_events:
+                self.two_step_events[first_step] = {}
+            section = self.two_step_events.get(first_step)
+            section.update(events)
 
     @staticmethod
     def convert_dict(d: Dict[str, str]) -> Dict[Keys, Keys]:
@@ -71,23 +72,43 @@ class Config:
         logger.warning(f"MISSING TWO STEP KEY for {firstStep} and {key}")
         return ""
 
-    def try_get_caps_send(self, key: Keys) -> List[Keys]:
-        return self.caps.get(key, [])
+    def try_get_caps_send(self, key: Keys) -> Optional[SendEvent]:
+        send = self.caps.get(key, [])
+        if not send:
+            return None
+        return SendEvent(send=send)
 
     @staticmethod
-    def convert_dict_commands(d: Dict[str, str]) -> Dict[Keys, str]:
+    def _parse_config_value_to_event(val: str) -> Any:
+        if val.startswith("__command__"):
+            cmd = val.replace("__command__", "").lstrip("<").rstrip(">")
+            if "C:" in cmd:  # TODO: fix that
+                cmd = rf"{cmd}"
+            return CMDEvent(cmd=cmd)
+        if val.startswith("__write__"):
+            text = val.replace("__write__", "").lstrip("<").rstrip(">")
+            return WriteEvent(text=text)
+        send = string_to_multi_keys(val)
+        return SendEvent(send=send)
+
+    @staticmethod
+    def _convert_dict_events(d: Dict[str, str]) -> Dict[Keys, str]:
         result = {}
-
-        # TODO: fix that
-        def parse_command(str) -> str:
-            str = str.replace("__command__", "").lstrip("<").rstrip(">")
-            if "C:" in str:
-                str = rf"{str}"
-            return str
-
         for key in d:
-            cmd = d[key]
-            if not "__command__" in cmd:
-                continue
-            result[Keys.from_string(key)] = parse_command(d[key])
+            result[Keys.from_string(key)] = Config._parse_config_value_to_event(d[key])
         return result
+
+    def get_single_step_send_event(self, key: Keys) -> Optional[SendEvent]:
+        send = self.common.get(key)
+        if not send:
+            return None
+        return SendEvent(send)
+
+    def get_two_step_event(self, first_step: Keys, key: Keys) -> Optional[Any]:
+
+        keys_two_step: dict = self.two_step_events.get(first_step, {})
+        event = keys_two_step.get(key)
+        if not event:
+            logger.warning(f"MISSING TWO STEP KEY for {first_step} and {key}")
+            return None
+        return event
