@@ -1,8 +1,9 @@
 import logging
 from logging.handlers import TimedRotatingFileHandler
-from app.app import App, TrayAppInterface, ListenerABC
-from app.current_state import NORMAL, OFF, INSERT
-from os_pynput import PynpytListener
+from app.app import App, TrayAppInterface
+from app.app_state import NORMAL, INSERT
+from app.keys import Keys
+from os_level.os_pynput import PynpytListener
 import pystray
 from PIL import Image
 from pathlib import Path
@@ -10,21 +11,25 @@ from pathlib import Path
 root = Path(__file__).parent
 TRAY_ICON_OFF = str(root / "assets" / "off.ico")
 TRAY_ICON_NORMAL = str(root / "assets" / "normal.ico")
+TRAY_ICON_NORMAL_FIRST_STEP = str(root / "assets" / "normal_first_step.ico")
 TRAY_ICON_INSERT = str(root / "assets" / "insert.ico")
 
 STARTING_MODE = NORMAL
 # TrayApp
 def start_tray_app():
-    def get_icon(mode):
+    def get_icon(mode: int, first_step: Keys = Keys.NONE):
         path = TRAY_ICON_OFF
         if mode == NORMAL:
-            path = TRAY_ICON_NORMAL
+            if first_step == Keys.NONE:
+                path = TRAY_ICON_NORMAL
+            else:
+                path = TRAY_ICON_NORMAL_FIRST_STEP
         if mode == INSERT:
             path = TRAY_ICON_INSERT
         return Image.open(path)
 
-    def set_icon(mode):
-        icon.icon = get_icon(mode)
+    def set_icon(mode, first_step):
+        icon.icon = get_icon(mode, first_step)
 
     icon = pystray.Icon("Dokey-py", icon=get_icon(STARTING_MODE))
     icon.run_detached()
@@ -42,19 +47,14 @@ def init_logging():
     log_dir_path = root / "logs"
     log_dir_path.mkdir(parents=True, exist_ok=True)
     filepath = log_dir_path / "dokey.log"
-    #file_handler = logging.FileHandler(filepath, mode="w")
     file_handler = TimedRotatingFileHandler(
         filename=filepath, when="D", backupCount=7, delay=True
     )
-
-    #formatter = logging.Formatter(DEFAULT_FORMAT)
-    #file_handler.setFormatter(formatter)
 
     logger.addHandler(file_handler)
     logger.setLevel(logging.INFO)
 
     logger.critical("init logging!")
-
 
 
 # main entrypoint

@@ -33,6 +33,8 @@ class Keys(Enum):
     RIGHT = 39
     DOWN = 40
 
+    PRINT_SCREEN = 44
+
     INSERT = 45
     DELETE = 46
 
@@ -111,8 +113,6 @@ class Keys(Enum):
     SQUARE_BRACKET_CLOSE = 221  # ] oem_6
     APOSTROPHE = 222  # ' oem_7
 
-    # command
-    COMMAND_EXIT = -1
 
     @staticmethod
     def from_string(s: str) -> "Keys":
@@ -241,7 +241,6 @@ LETTER_OR_DIGIT = [
 
 
 keyboard_to_dokey_map = {
-    "COMMAND_EXIT": Keys.COMMAND_EXIT,
     "caps lock": Keys.CAPS,
     "capital": Keys.CAPS,
     # mod
@@ -273,6 +272,8 @@ keyboard_to_dokey_map = {
     "down": Keys.DOWN,
     "up": Keys.UP,
     "menu": Keys.MENU,
+    "print screen": Keys.PRINT_SCREEN,
+    "print_screen": Keys.PRINT_SCREEN,
     # func
     "f1": Keys.F1,
     "f2": Keys.F2,
@@ -373,7 +374,6 @@ def string_to_multi_keys(s: str) -> []:
 
 
 def keys_to_send(keys: List[Keys]) -> str:
-    #assert isinstance(keys, type(List[Keys]))
     send = ""
     for key in keys:
         send += key.to_string()
@@ -383,3 +383,10 @@ def keys_to_send(keys: List[Keys]) -> str:
             send += ","
     send = send.rstrip(",")
     return send
+
+def pretty_trigger(first_step: Keys, key: Keys) -> str:
+    s = ""
+    if first_step != Keys.NONE:
+        s = first_step.to_string() + ","
+    s += key.to_string()
+    return s

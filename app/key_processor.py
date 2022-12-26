@@ -1,7 +1,7 @@
 from typing import List, Optional, Any
-from app.current_state import CurrentState, OFF, NORMAL, INSERT
+from app.app_state import AppState, OFF, NORMAL, INSERT
 from app.config import Config
-from app.events import Event, SendEvent, CMDEvent, DoKeyEvent
+from app.events import Event, SendEvent, CMDEvent, DoKeyEvent, EventLike
 from app.modificators import Modificators
 from app.keys import Keys
 
@@ -21,14 +21,15 @@ def get_next_mode(mode: int) -> int:
 class KeyProcessor:
     def __init__(self, config, state):
         self.config: Config = config
-        self.state: CurrentState = state
+        self.state: AppState = state
 
     def process(
         self,
         key: Keys,
         is_key_up=False,
         modifs_os: Modificators = None,
-    ) -> Optional[Event]:
+    ) -> Optional[EventLike]:
+        """Side effect: change of AppState!"""
 
         # process CAPSLOCK
         if key.is_caps():
@@ -41,7 +42,7 @@ class KeyProcessor:
             return Event()
 
         # try update modifiers by OS modifiers. only when non modifier is pressed.
-        self._try_update_modifiers_by_os(modifs_os)
+        self._try_update_modifs_by_os(modifs_os)
 
         if is_key_up:
             return Event()
@@ -74,13 +75,10 @@ class KeyProcessor:
 
     def _try_process_mode_change(self, key: Keys) -> (Optional[int], bool):
         if self.state.modificators.caps:
-            # TODO mode keys in config?
-            mode_off_key = Keys.Q
-            mode_change_key = Keys.F
-            if key == mode_off_key:
+            if key == self.config.off_mode_key:
                 return OFF, True
 
-            if key == mode_change_key:
+            if key == self.config.change_mode_key:
                 return get_next_mode(self.state.mode), True
 
             return -1, False
@@ -140,10 +138,6 @@ class KeyProcessor:
         if event:
             return event
 
-        # event = self.config.get_two_steps_command(first_step, key)
-        # if event:
-        #     return event
-
         return Event(True)
 
     def _process_normal_and_insert_with_capital(self, key: Keys) -> Optional[SendEvent]:
@@ -186,13 +180,13 @@ class KeyProcessor:
     def _try_process_dokey_event(self, key: Keys):
         if not self.state.modificators.caps:
             return None
-        if key == Keys.BACKSPACE:  # TODO command to config
+        if key == self.config.exit_key:  # TODO command to config
             return DoKeyEvent()
 
-    def _try_update_modifiers_by_os(self, modifs_os: Modificators):
+    def _try_update_modifs_by_os(self, modifs_os: Modificators):
         """
-        Solution of windows lock win+l. Win is down. We can't receive up event! Modifs_os is additional
-        state of modifires.
+        Solution for windows lock win+l issue. Win is down. We can't receive up event, because machine is locked!
+        Modifs_os is additional state of modifires.
         """
         if not modifs_os:
             return

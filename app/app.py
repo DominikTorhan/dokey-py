@@ -2,11 +2,11 @@ from typing import Callable, Any, List
 import logging
 import os
 from abc import ABC, abstractmethod
-from app.current_state import CurrentState, OFF, NORMAL
-from app.events import Event, SendEvent, CMDEvent, DoKeyEvent
+from app.app_state import AppState, OFF, NORMAL
+from app.events import Event, SendEvent, CMDEvent, DoKeyEvent, EventLike
 from app.key_processor import KeyProcessor
 from app.config import Config
-from app.keys import Keys, keys_to_send
+from app.keys import Keys, keys_to_send, pretty_trigger
 from app.modificators import Modificators
 
 
@@ -19,8 +19,6 @@ class TrayAppInterface:
         self.stop = stop
 
 
-
-
 class OSEvent:
     def __init__(self):
         self.key: Keys = Keys.NONE
@@ -30,7 +28,7 @@ class OSEvent:
 
 class ListenerABC(ABC):
     @abstractmethod
-    def run(self, func: Callable[[OSEvent], Any]):
+    def run(self, func: Callable[[OSEvent], EventLike]):
         # starts listener
         pass
 
@@ -45,7 +43,7 @@ class App:
         self.config: Config = Config.from_file(config_path)
         self.listener: ListenerABC = listener
         self.tray_app_interface: TrayAppInterface = tray_app_interface
-        self.state = CurrentState()
+        self.state = AppState()
         self.state.mode = NORMAL
         self.processor: KeyProcessor = KeyProcessor(self.config, self.state)
 
@@ -55,12 +53,16 @@ class App:
         self.listener.run(self.handle_keyboard_event)
         logger.info("Terminate!")
 
-    def handle_keyboard_event(self, trigger: OSEvent) -> Event:
-        """Main function to handle keyboard event. It is kind of iteration in main while loop."""
+    def handle_keyboard_event(self, trigger: OSEvent) -> EventLike:
+        """Main function to handle keyboard event. It is a kind of iteration in the main while loop."""
         logger.debug(
             f"EVENT: {trigger.key}, vk{str(trigger.key.value)} {'up' if trigger.is_key_up else 'down'}"
         )
 
+        old_mode = self.state.mode
+        old_first_step = self.state.first_step
+
+        # process changes the app state
         event = self.processor.process(
             key=trigger.key,
             is_key_up=trigger.is_key_up,
@@ -70,20 +72,20 @@ class App:
             return Event()
 
         if self.tray_app_interface:
-            self.tray_app_interface.set_icon(self.state.mode)
+            self.tray_app_interface.set_icon(self.state.mode, self.state.first_step)
 
         if isinstance(event, DoKeyEvent):
+            # Only one DoKeyEvent for now. Exit command
             if self.tray_app_interface:
                 self.tray_app_interface.stop()
 
         if isinstance(event, SendEvent):
-            friendly_keys = keys_to_send(event.send)
-            logger.info(f"SEND: {friendly_keys}")  # TODO: add trigger (eg. f,f -> f12)
-            # terminate app
-            # if Keys.COMMAND_EXIT in event.send: # TODO
-            #     if self.tray_app_interface:
-            #         self.tray_app_interface.stop()
-            #return event
+            pretty_send = keys_to_send(event.send)
+            trigger_info = pretty_trigger(old_first_step, trigger.key)
+            modifs_info = self.state.modificators.to_string()
+            logger.info(
+                f"SEND: {pretty_send} [{(trigger_info)}] {modifs_info}"
+            )
 
         # Execute custom command
         if isinstance(event, CMDEvent):

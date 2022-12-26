@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Union
 
 from app.keys import Keys
 
@@ -7,7 +7,9 @@ class Event:
     """Event types: SendEvent, WriteEvent, MouseEvent, DoKeyEvent (e.g. exit), CMDEvent"""
 
     def __init__(self, prevent_key_process: bool = False, mouse=False):
-        self.prevent_key_process: bool = prevent_key_process # suppress os keyboard event
+        self.prevent_key_process: bool = (
+            prevent_key_process  # suppress os keyboard event
+        )
         self.mouse = mouse
 
 
@@ -28,6 +30,10 @@ class DoKeyEvent:
         # now only one case: Exit
         pass
 
+
 class WriteEvent:
     def __init__(self, text: str):
         self.text = text
+
+
+EventLike = Union[Event, SendEvent, CMDEvent, DoKeyEvent, WriteEvent]

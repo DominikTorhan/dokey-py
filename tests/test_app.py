@@ -1,12 +1,15 @@
 import unittest
 from pathlib import Path
 
-from app.app import OSEvent, Event
-from app.events import SendEvent, DoKeyEvent
+from app.app import OSEvent
+from app.events import SendEvent, DoKeyEvent, EventLike
 from app.keys import Keys, keys_to_send
-from main import App, ListenerABC
+from os_level.os_pynput import ListenerABC
+from main import App
 
 CONFIG_PATH = Path(__file__).parent.parent / "app" / "config.yaml"
+
+EXIT_KEY = Keys.PRINT_SCREEN
 
 test_app_playlist = [
     (
@@ -19,7 +22,7 @@ test_app_playlist = [
             (Keys.CAPS, "d"),
             (Keys.CAPS, "u"),
             (Keys.CAPS, "d"),
-            (Keys.BACKSPACE, "d"),  # caps+backspace - exit app
+            (EXIT_KEY, "d"),  # caps+backspace - exit app
         ],
         ["down"],
     ),
@@ -52,7 +55,7 @@ test_app_playlist = [
             (Keys.Z, "d"),  # dz -> ctrl+f7,ctrl+f8 (evernote trick)
             (Keys.Z, "u"),
             (Keys.CAPS, "d"),
-            (Keys.BACKSPACE, "d"),  # caps+backspace - exit app
+            (EXIT_KEY, "d"),  # caps+backspace - exit app
         ],
         ["enter", "ctrl+z", "up,end,enter", "tab", "page up", "ctrl+f7,ctrl+f8"],
     ),
@@ -73,7 +76,7 @@ class TestListener(ListenerABC):
             trigger = OSEvent()
             trigger.key = key
             trigger.is_key_up = is_up
-            event: Event = func(trigger)
+            event: EventLike = func(trigger)
             if isinstance(event, DoKeyEvent):
                 # exit
                 break

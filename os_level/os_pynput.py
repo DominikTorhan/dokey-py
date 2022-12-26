@@ -1,14 +1,16 @@
 import logging
 from typing import List, Optional
-from pynput import keyboard
-from app.app import ListenerABC, OSEvent
-from app.events import SendEvent, DoKeyEvent, Event, CMDEvent, WriteEvent
-from app.modificators import Modificators
-from app.keys import Keys, shift_keys, control_keys, alt_keys, win_keys
-from pynput.keyboard import Key, Controller, KeyCode
-import time
 import ctypes
 
+from pynput import keyboard
+from pynput.keyboard import Key, Controller, KeyCode
+
+from app.app import ListenerABC, OSEvent
+from app.events import SendEvent, DoKeyEvent, Event, CMDEvent, WriteEvent, EventLike
+from app.modificators import Modificators
+from app.keys import Keys, shift_keys, control_keys, alt_keys, win_keys
+
+from os_level.windows_api import get_active_process_name
 
 logger = logging.getLogger(__name__)
 
@@ -50,14 +52,6 @@ def get_modif_state():
     logger.debug(f"os modifs {repr(modifs)}")
     return modifs
 
-def get_foreground_window_title() -> Optional[str]:
-    hwnd = user32_dll.GetForegroundWindow()
-    length = user32_dll.GetWindowTextLengthW(hwnd)
-    buf = ctypes.create_unicode_buffer(length + 1)
-    user32_dll.GetWindowTextW(hwnd, buf, length + 1)
-    return buf.value if buf.value else None
-
-
 class PynpytListener(ListenerABC):
     def __init__(self):
         self.listener = keyboard.Listener(
@@ -85,14 +79,18 @@ class PynpytListener(ListenerABC):
         if is_capslock_on():
             return True
         modifs_os = get_modif_state()
-        window_title = get_foreground_window_title()
+        #logger.info(f"Active process: {get_active_process_name()}")
         is_up = msg == 257 or msg == 261
-        key = Keys(data.vkCode)
+        try:
+            key = Keys(data.vkCode)
+        except:
+            logger.critical(f"Missing VK {data.vkCode} in Keys!")
+            return True
         os_event = OSEvent()
         os_event.key = key
         os_event.is_key_up = is_up
         os_event.modifs_os = modifs_os
-        event = self.func(os_event)
+        event: EventLike = self.func(os_event)
         if isinstance(event, DoKeyEvent):
             self.listener.stop()
             self.listener._suppress = True

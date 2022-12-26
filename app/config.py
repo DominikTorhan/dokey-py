@@ -4,7 +4,7 @@ from typing import Dict, List, Any, Union, Optional
 import yaml
 from pathlib import Path
 
-from app.events import SendEvent, CMDEvent, WriteEvent
+from app.events import SendEvent, CMDEvent, WriteEvent, Event, EventLike
 from app.keys import Keys, string_to_multi_keys
 
 
@@ -13,7 +13,10 @@ logger = logging.getLogger(__name__)
 
 class Config:
     def __init__(self):
-
+        self.change_mode_key = Keys.NONE
+        self.off_mode_key = Keys.NONE
+        self.exit_key = Keys.NONE
+        self.cli_mode_key = Keys.NONE
         self.caps = {}
         self.common = {}
         self.two_step_events = {}
@@ -23,6 +26,12 @@ class Config:
         config = cls()
         with open(path, "r") as f:
             config_data: dict = yaml.safe_load(f)
+
+        config.change_mode_key = Keys.from_string(config_data.pop("change_mode_key"))
+        config.off_mode_key = Keys.from_string(config_data.pop("off_mode_key"))
+        config.exit_key = Keys.from_string(config_data.pop("exit_key"))
+        config.cli_mode_key = Keys.from_string(config_data.pop("cli_mode_key"))
+
         config.caps = config.convert_dict(config_data.pop("caps"))
         config.common = config.convert_dict(config_data.pop("common"))
 
@@ -72,14 +81,14 @@ class Config:
         logger.warning(f"MISSING TWO STEP KEY for {firstStep} and {key}")
         return ""
 
-    def try_get_caps_send(self, key: Keys) -> Optional[SendEvent]:
+    def try_get_caps_send(self, key: Keys) -> EventLike:
         send = self.caps.get(key, [])
         if not send:
-            return None
+            return Event(True)
         return SendEvent(send=send)
 
     @staticmethod
-    def _parse_config_value_to_event(val: str) -> Any:
+    def _parse_config_value_to_event(val: str) -> EventLike:
         if val.startswith("__command__"):
             cmd = val.replace("__command__", "").lstrip("<").rstrip(">")
             if "C:" in cmd:  # TODO: fix that
@@ -92,7 +101,7 @@ class Config:
         return SendEvent(send=send)
 
     @staticmethod
-    def _convert_dict_events(d: Dict[str, str]) -> Dict[Keys, str]:
+    def _convert_dict_events(d: Dict[str, str]) -> Dict[Keys, EventLike]:
         result = {}
         for key in d:
             result[Keys.from_string(key)] = Config._parse_config_value_to_event(d[key])
@@ -104,7 +113,7 @@ class Config:
             return None
         return SendEvent(send)
 
-    def get_two_step_event(self, first_step: Keys, key: Keys) -> Optional[Any]:
+    def get_two_step_event(self, first_step: Keys, key: Keys) -> Optional[EventLike]:
 
         keys_two_step: dict = self.two_step_events.get(first_step, {})
         event = keys_two_step.get(key)

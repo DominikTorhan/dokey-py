@@ -1,13 +1,8 @@
-# //oemcomma    ,
-# //oemperiod   .
-# //oem2        /
-# //oem1        ;
-# //oem7        '
-# //oem4        [
-# //oem6        ]
-# //oem5        \
-# //oemminus    -
-# //oemplus     =
+# Main configuration
+change_mode_key: f
+off_mode_key: q
+exit_key: print_screen
+cli_mode_key: slash
 
 caps: # tigger with CapsLock. Used in 1 (normal) and 2 (insert) mode
   e: esc
@@ -66,6 +61,7 @@ f: # first step f
   # other shortcuts
   s: shift+esc # shift ESC
 
+#Bellow Two step combinations:
 a:
   a: __write__<test_override>
   b: __write__<test_override>

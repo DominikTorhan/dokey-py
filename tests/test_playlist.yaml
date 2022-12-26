@@ -46,10 +46,10 @@ playlist:
   - {input: "1,,c m down", output: "1||c|*|ctrl+tab|PREV"}
   - {input: "1,,c comma down", output: "1||c|*|ctrl+shift+tab|PREV"}
   - {input: "1,,c n down", output: "1||c|*|ctrl+enter|PREV"}
-  - {input: "1,,c a down", output: "None"}
-  - {input: "1,,c z down", output: "None"}
-  - {input: "1,,c x down", output: "None"}
-  - {input: "1,,c s down", output: "None"}
+  - {input: "1,,c a down", output: "1||c|*||PREV"} # do nothing, and prevent
+  - {input: "1,,c z down", output: "1||c|*||PREV"}
+  - {input: "1,,c x down", output: "1||c|*||PREV"}
+  - {input: "1,,c s down", output: "1||c|*||PREV"}
 
   # single step
   - {input: "1,, h down", output: "1||||left|PREV"}

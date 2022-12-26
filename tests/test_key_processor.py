@@ -1,7 +1,7 @@
 import unittest
 from pathlib import Path
 import yaml
-from app.current_state import CurrentState
+from app.app_state import AppState
 from app.events import SendEvent, CMDEvent, WriteEvent
 from app.key_processor import Event, KeyProcessor
 from app.config import Config
@@ -23,7 +23,7 @@ class TestPlaylist(unittest.TestCase):
 
     def test_key_processor(self):
         config = Config.from_file(CONFIG_PATH)
-        state = CurrentState()
+        state = AppState()
         processor = KeyProcessor(config, state)
 
         playlist = self.playlist_data
@@ -37,7 +37,7 @@ class TestPlaylist(unittest.TestCase):
 
             inputs = input.split()
 
-            app_state = CurrentState()
+            app_state = AppState()
             strs = inputs[0].split(",")
             mode = int(strs[0])
             first_step = Keys.from_string(strs[1])
@@ -61,17 +61,11 @@ class TestPlaylist(unittest.TestCase):
             state.modificators = modificators
             state.prevent_esc_on_caps_up = prevent_esc_on_caps_up
 
-            if input == "1,i, d2 down":
+            if input == "1,,c a down":
                 x = 0
 
             # main call
-            try:
-                event = processor.process(
-                    key=key,
-                    is_key_up=is_up,
-                )
-            except:
-                x = 0
+            event = processor.process(key=key, is_key_up=is_up)
 
             if not event:
                 self.assertEqual(expected, "None")
