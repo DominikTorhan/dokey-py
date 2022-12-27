@@ -6,15 +6,15 @@
 # Output: mode|firstStep|modificators|*|send|preventKeyProcess
 
 playlist:
-  - {input: "0,, capital down", output: "0||c|||PREV"}
-  - {input: "0,,* capital down", output: "0||c|*||PREV"}
-  - {input: "0,,c capital up", output: "0|||||PREV"}
-  - {input: "0,,c* capital up", output: "0|||||PREV"}
-  - {input: "1,,c capital down", output: "1||c|||PREV"}
-  - {input: "1,,c capital up", output: "1|||||PREV"}
-  - {input: "1,,c* capital up", output: "1|||||PREV"}
-  - {input: "2,, capital down", output: "2||c|||PREV"}
-  - {input: "2,,c* capital up", output: "2|||||PREV"}
+  - {input: "0,, capital down", output: "0||s|||PREV"}
+  - {input: "0,,* capital down", output: "0||s|*||PREV"}
+  - {input: "0,,s capital up", output: "0|||||PREV"}
+  - {input: "0,,s* capital up", output: "0|||||PREV"}
+  - {input: "1,,s capital down", output: "1||s|||PREV"}
+  - {input: "1,,s capital up", output: "1|||||PREV"}
+  - {input: "1,,s* capital up", output: "1|||||PREV"}
+  - {input: "2,, capital down", output: "2||s|||PREV"}
+  - {input: "2,,s* capital up", output: "2|||||PREV"}
   - {input: "1,, lshiftkey down", output: "1||+|||"}
   - {input: "1,,+ lshiftkey up", output: "1|||||"}
   - {input: "1,,+ lshiftkey down", output: "1||+|||"}
@@ -22,34 +22,33 @@ playlist:
   - {input: "1,, win down", output: "1||w|||"}
   - {input: "1,,w win up", output: "1|||||"}
    # status changed (next)
-  - {input: "0,,c f down", output: "1||c|*||PREV"}
-  - {input: "1,,c f down", output: "2||c|*||PREV"}
+  - {input: "0,,s f down", output: "1||s|*||PREV"}
+  - {input: "1,,s f down", output: "2||s|*||PREV"}
    # status changed (prev)
-  - {input: "2,,c capital up", output: "1|||||PREV"}
-  - {input: "2,, escape down", output: "1|||||PREV"}
+  - {input: "2,,s capital up", output: "1|||||PREV"}
    # status changed (OFF)
-  - {input: "0,,c q down", output: "0||c|*||PREV"}
-  - {input: "1,,c q down", output: "0||c|*||PREV"}
-  - {input: "2,,c q down", output: "0||c|*||PREV"}
-     # with caps
-  - {input: "1,,c h down", output: "1||c|*|backspace|PREV"}
-  - {input: "2,,c h down", output: "2||c|*|backspace|PREV"}
-  - {input: "1,,c y down", output: "1||c|*|ctrl+backspace|PREV"}
-  - {input: "1,,c l down", output: "1||c|*|del|PREV"}
-  - {input: "1,,c d down", output: "1||c|*|del|PREV"}
-  - {input: "1,,c j down", output: "1||c|*|enter|PREV"}
-  - {input: "1,,c r down", output: "1||c|*|enter|PREV"}
-  - {input: "1,,c t down", output: "1||c|*|tab|PREV"}
-  - {input: "1,,c g down", output: "1||c|*|shift+tab|PREV"}
-  - {input: "1,,c c down", output: "1||c|*|shift+f10|PREV"}
-  - {input: "1,,c v down", output: "1||c|*|ctrl+shift+v|PREV"}
-  - {input: "1,,c m down", output: "1||c|*|ctrl+tab|PREV"}
-  - {input: "1,,c comma down", output: "1||c|*|ctrl+shift+tab|PREV"}
-  - {input: "1,,c n down", output: "1||c|*|ctrl+enter|PREV"}
-  - {input: "1,,c a down", output: "1||c|*||PREV"} # do nothing, and prevent
-  - {input: "1,,c z down", output: "1||c|*||PREV"}
-  - {input: "1,,c x down", output: "1||c|*||PREV"}
-  - {input: "1,,c s down", output: "1||c|*||PREV"}
+  - {input: "0,,s q down", output: "0||s|*||PREV"}
+  - {input: "1,,s q down", output: "0||s|*||PREV"}
+  - {input: "2,,s q down", output: "0||s|*||PREV"}
+     # with special
+  - {input: "1,,s h down", output: "1||s|*|backspace|PREV"}
+  - {input: "2,,s h down", output: "2||s|*|backspace|PREV"}
+  - {input: "1,,s y down", output: "1||s|*|ctrl+backspace|PREV"}
+  - {input: "1,,s l down", output: "1||s|*|del|PREV"}
+  - {input: "1,,s d down", output: "1||s|*|del|PREV"}
+  - {input: "1,,s j down", output: "1||s|*|enter|PREV"}
+  - {input: "1,,s r down", output: "1||s|*|enter|PREV"}
+  - {input: "1,,s t down", output: "1||s|*|tab|PREV"}
+  - {input: "1,,s g down", output: "1||s|*|shift+tab|PREV"}
+  - {input: "1,,s c down", output: "1||s|*|shift+f10|PREV"}
+  - {input: "1,,s v down", output: "1||s|*|ctrl+shift+v|PREV"}
+  - {input: "1,,s m down", output: "1||s|*|ctrl+tab|PREV"}
+  - {input: "1,,s comma down", output: "1||s|*|ctrl+shift+tab|PREV"}
+  - {input: "1,,s n down", output: "1||s|*|ctrl+enter|PREV"}
+  - {input: "1,,s a down", output: "1||s|*||PREV"} # do nothing, and prevent
+  - {input: "1,,s z down", output: "1||s|*||PREV"}
+  - {input: "1,,s x down", output: "1||s|*||PREV"}
+  - {input: "1,,s s down", output: "1||s|*||PREV"}
 
   # single step
   - {input: "1,, h down", output: "1||||left|PREV"}

@@ -146,21 +146,17 @@ class Keys(Enum):
     def is_win(self):
         return self in [Keys.RIGHT_WIN, Keys.LEFT_WIN]
 
-    def is_caps(self):
-        return self in [Keys.CAPS]
-
     def is_modif(self):
         """Ctrl, alt or shift"""
         return self.is_control() or self.is_alt() or self.is_shift()
 
     def is_modif_ex(self):
-        """Ctrl, alt, shift, win or caps"""
+        """Ctrl, alt, shift, win"""
         return (
             self.is_control()
             or self.is_alt()
             or self.is_shift()
             or self.is_win()
-            or self.is_caps()
         )
 
     def is_first_step(self):

@@ -6,7 +6,7 @@ from app.events import SendEvent, CMDEvent, WriteEvent
 from app.key_processor import Event, KeyProcessor
 from app.config import Config
 from app.keys import Keys, string_to_multi_keys
-from app.modificators import Modificators
+from app.modifs import Modifs
 
 CONFIG_PATH = Path(__file__).parent.parent / "app" / "config.yaml"
 PLAYLIST_PATH = Path(__file__).parent / "test_playlist.yaml"
@@ -43,25 +43,25 @@ class TestPlaylist(unittest.TestCase):
             first_step = Keys.from_string(strs[1])
 
             modif_str = strs[2]
-            modificators = Modificators()
-            modificators.control = "^" in modif_str
-            modificators.shift = "+" in modif_str
-            modificators.alt = "%" in modif_str
-            modificators.win = "w" in modif_str
-            modificators.caps = "c" in modif_str
-            app_state.modificators = modificators
+            modifs = Modifs()
+            modifs.control = "^" in modif_str
+            modifs.shift = "+" in modif_str
+            modifs.alt = "%" in modif_str
+            modifs.win = "w" in modif_str
+            app_state.modifs = modifs
 
-            prevent_esc_on_caps_up = "*" in strs[2]
+            prevent_prev_mode_on_special_up = "*" in strs[2]
 
             key = Keys.from_string(inputs[1])
             is_up = inputs[2] == "up"
 
             state.mode = mode
             state.first_step = first_step
-            state.modificators = modificators
-            state.prevent_esc_on_caps_up = prevent_esc_on_caps_up
+            state.modifs = modifs
+            state.prevent_prev_mode_on_special_up = prevent_prev_mode_on_special_up
+            state.is_special_down = "s" in modif_str
 
-            if input == "1,,c a down":
+            if input == "1,,s a down":
                 x = 0
 
             # main call
@@ -86,9 +86,13 @@ class TestPlaylist(unittest.TestCase):
             strs = expected.split("|")
             mode = int(strs[0])
             first_step = Keys.from_string(strs[1])
-            modificators = strs[2]
+            modifs = strs[2]
+            is_special_down = False
+            if "s" in modifs:
+                is_special_down = True
+                modifs = modifs.replace("s", "")
 
-            prevent_esc_on_caps_up = "*" in strs[3]
+            prevent_prev_mode_on_special_up = "*" in strs[3]
 
             send = []
             if strs[4]:
@@ -97,8 +101,9 @@ class TestPlaylist(unittest.TestCase):
 
             self.assertEqual(mode, state.mode)
             self.assertEqual(first_step, state.first_step)
-            self.assertEqual(modificators, state.modificators.to_string())
-            self.assertEqual(prevent_esc_on_caps_up, state.prevent_esc_on_caps_up)
+            self.assertEqual(is_special_down, state.is_special_down)
+            self.assertEqual(modifs, state.modifs.to_string())
+            self.assertEqual(prevent_prev_mode_on_special_up, state.prevent_prev_mode_on_special_up)
 
             actual_send = []
             actual_prevent_key_process = True

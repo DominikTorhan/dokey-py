@@ -13,11 +13,12 @@ logger = logging.getLogger(__name__)
 
 class Config:
     def __init__(self):
+        self.special_key = Keys.NONE
         self.change_mode_key = Keys.NONE
         self.off_mode_key = Keys.NONE
         self.exit_key = Keys.NONE
-        self.cli_mode_key = Keys.NONE
-        self.caps = {}
+        self.help_key = Keys.NONE
+        self.special = {}
         self.common = {}
         self.two_step_events = {}
 
@@ -27,12 +28,13 @@ class Config:
         with open(path, "r") as f:
             config_data: dict = yaml.safe_load(f)
 
+        config.special_key = Keys.from_string(config_data.pop("special_key"))
         config.change_mode_key = Keys.from_string(config_data.pop("change_mode_key"))
         config.off_mode_key = Keys.from_string(config_data.pop("off_mode_key"))
         config.exit_key = Keys.from_string(config_data.pop("exit_key"))
-        config.cli_mode_key = Keys.from_string(config_data.pop("cli_mode_key"))
+        config.help_key = Keys.from_string(config_data.pop("help_key"))
 
-        config.caps = config.convert_dict(config_data.pop("caps"))
+        config.special = config.convert_dict(config_data.pop("special"))
         config.common = config.convert_dict(config_data.pop("common"))
 
         dct = {}
@@ -81,8 +83,8 @@ class Config:
         logger.warning(f"MISSING TWO STEP KEY for {firstStep} and {key}")
         return ""
 
-    def try_get_caps_send(self, key: Keys) -> EventLike:
-        send = self.caps.get(key, [])
+    def try_get_special_send(self, key: Keys) -> EventLike:
+        send = self.special.get(key, [])
         if not send:
             return Event(True)
         return SendEvent(send=send)

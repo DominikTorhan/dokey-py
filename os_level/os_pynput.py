@@ -7,7 +7,7 @@ from pynput.keyboard import Key, Controller, KeyCode
 
 from app.app import ListenerABC, OSEvent
 from app.events import SendEvent, DoKeyEvent, Event, CMDEvent, WriteEvent, EventLike
-from app.modificators import Modificators
+from app.modifs import Modifs
 from app.keys import Keys, shift_keys, control_keys, alt_keys, win_keys
 
 from os_level.windows_api import get_active_process_name
@@ -43,12 +43,11 @@ def get_modif_state():
     def is_modif_active(keys: List[Keys]):
         return any(user32_dll.GetAsyncKeyState(key.value) for key in keys)
 
-    modifs = Modificators()
+    modifs = Modifs()
     modifs.control = is_modif_active(control_keys)
     modifs.shift = is_modif_active(shift_keys)
     modifs.alt = is_modif_active(alt_keys)
     modifs.win = is_modif_active(win_keys)
-    modifs.caps = is_modif_active([Keys.CAPS])  # not sure if that works
     logger.debug(f"os modifs {repr(modifs)}")
     return modifs
 

@@ -1,9 +1,13 @@
+import logging
 from typing import List, Optional, Any
 from app.app_state import AppState, OFF, NORMAL, INSERT
 from app.config import Config
 from app.events import Event, SendEvent, CMDEvent, DoKeyEvent, EventLike
-from app.modificators import Modificators
+from app.modifs import Modifs
 from app.keys import Keys
+
+
+logger = logging.getLogger(__name__)
 
 
 def get_prev_mode(mode: int) -> int:
@@ -27,32 +31,35 @@ class KeyProcessor:
         self,
         key: Keys,
         is_key_up=False,
-        modifs_os: Modificators = None,
+        modifs_os: Modifs = None,
     ) -> Optional[EventLike]:
         """Side effect: change of AppState!"""
 
-        # process CAPSLOCK
-        if key.is_caps():
-            return self._process_capital(key, is_key_up)
+        # process special key (usually caps lock)
+        if key == self.config.special_key:
+            return self._process_special(is_key_up)
 
-        # process Modificators
+        # process Modifs
         if key.is_modif_ex():
-            new_modificators = self._get_next_modificators(key, is_key_up)
-            self.state.modificators = new_modificators
+            new_modifs = self._get_next_modifs(key, is_key_up)
+            self.state.modifs = new_modifs
             return Event()
 
         # try update modifiers by OS modifiers. only when non modifier is pressed.
         self._try_update_modifs_by_os(modifs_os)
 
+        # help
+        event = self._process_help(key, is_key_up)
+        if event:
+            return event
+
         if is_key_up:
             return Event()
 
         # mode Change
-        new_mode, new_prevent_esc_on_caps_up = self._try_process_mode_change(key)
-        if new_mode > -1:
-            self.state.mode = new_mode
-            self.state.prevent_esc_on_caps_up = new_prevent_esc_on_caps_up
-            return Event(True)
+        event = self._try_process_mode_change(key)
+        if event:
+            return event
 
         # single step
         event = self._try_process_single_step(key)
@@ -69,47 +76,61 @@ class KeyProcessor:
         if event:
             return event
 
-        # caps key
-        event = self._process_normal_and_insert_with_capital(key)
+        # special key
+        event = self._process_normal_and_insert_with_special(key)
         return event
 
     def _try_process_mode_change(self, key: Keys) -> (Optional[int], bool):
-        if self.state.modificators.caps:
-            if key == self.config.off_mode_key:
-                return OFF, True
+        if not self.state.is_special_down:
+            return None
 
-            if key == self.config.change_mode_key:
-                return get_next_mode(self.state.mode), True
+        if key == self.config.off_mode_key:
+            self.state.mode = OFF
+            self.state.prevent_prev_mode_on_special_up = True
+            return Event(True)
 
-            return -1, False
+        if key == self.config.change_mode_key:
+            self.state.mode = get_next_mode(self.state.mode)
+            self.state.prevent_prev_mode_on_special_up = True
+            return Event(True)
 
-        if key.is_esc() and self.state.mode == INSERT:
-            return get_prev_mode(self.state.mode), self.state.prevent_esc_on_caps_up
+        return None
 
-        return -1, False
+    def _process_special(self, is_key_up: bool) -> Event:
 
-    def _process_capital(self, key: Keys, is_key_up: bool) -> Event:
+        if is_key_up and not self.state.prevent_prev_mode_on_special_up and self.state.mode == INSERT:
+            self.state.mode = NORMAL  # prev mode at special up
 
-        new_prevent_esc_on_caps_up = self.state.prevent_esc_on_caps_up
-        new_mode = self.state.mode
+        if is_key_up and self.state.prevent_prev_mode_on_special_up:
+            self.state.prevent_prev_mode_on_special_up = False
 
-        if is_key_up and not new_prevent_esc_on_caps_up and self.state.mode == INSERT:
-            new_mode = NORMAL  # prev mode at esc
+        self.state.is_special_down = not is_key_up
 
-        if is_key_up and new_prevent_esc_on_caps_up:
-            new_prevent_esc_on_caps_up = False
+        return Event(True)
 
-        new_modificators = self._get_next_modificators(
-            key, is_key_up
-        )  # only for CAPS?!
+    def _process_help(self, key: Keys, is_key_up: bool) -> Optional[Event]:
 
-        self.state.mode = new_mode
-        self.state.modificators = new_modificators
-        self.state.prevent_esc_on_caps_up = new_prevent_esc_on_caps_up
+        is_help = key == self.config.help_key
+
+        if not is_help:
+            return None
+
+        if self.state.is_special_down and not is_key_up:
+            self.state.is_help_down = True
+            return Event(True)
+
+        if not self.state.is_help_down:
+            return None
+
+        if not is_key_up:
+            return None
+
+        self.state.is_help_down = False
+
         return Event(True)
 
     def _try_process_single_step(self, key: Keys) -> Optional[Event]:
-        if self.state.modificators.caps or self.state.modificators.win:
+        if self.state.is_special_down or self.state.modifs.win:
             return None
         if self.state.mode != NORMAL:
             return None
@@ -125,7 +146,7 @@ class KeyProcessor:
     def _try_process_two_step(self, key: Keys) -> Optional[Any]:
         if self.state.mode != NORMAL:
             return None
-        if self.state.modificators.caps or self.state.modificators.win:
+        if self.state.is_special_down or self.state.modifs.win:
             return None
 
         if self.state.first_step == Keys.NONE:
@@ -138,25 +159,25 @@ class KeyProcessor:
         if event:
             return event
 
+        # prevent
         return Event(True)
 
-    def _process_normal_and_insert_with_capital(self, key: Keys) -> Optional[SendEvent]:
-        if self.state.mode == OFF or not self.state.modificators.caps:
+    def _process_normal_and_insert_with_special(self, key: Keys) -> Optional[SendEvent]:
+        if self.state.mode == OFF or not self.state.is_special_down:
             return None
-        event = self.config.try_get_caps_send(key)
+        event = self.config.try_get_special_send(key)
         if not event:
             return None
         self.state.first_step = Keys.NONE
-        self.state.prevent_esc_on_caps_up = True
+        self.state.prevent_prev_mode_on_special_up = True
         return event
 
-    def _get_next_modificators(self, key: Keys, is_key_up: bool) -> Modificators:
+    def _get_next_modifs(self, key: Keys, is_key_up: bool) -> Modifs:
         down = not is_key_up
-        control = self.state.modificators.control
-        shift = self.state.modificators.shift
-        alt = self.state.modificators.alt
-        win = self.state.modificators.win
-        caps = self.state.modificators.caps
+        control = self.state.modifs.control
+        shift = self.state.modifs.shift
+        alt = self.state.modifs.alt
+        win = self.state.modifs.win
         if key.is_control():
             control = down
         if key.is_shift():
@@ -165,25 +186,22 @@ class KeyProcessor:
             alt = down
         if key.is_win():
             win = down
-        if key.is_caps():
-            caps = down
 
-        modificators = Modificators()
-        modificators.control = control
-        modificators.shift = shift
-        modificators.alt = alt
-        modificators.win = win
-        modificators.caps = caps
+        modifs = Modifs()
+        modifs.control = control
+        modifs.shift = shift
+        modifs.alt = alt
+        modifs.win = win
 
-        return modificators
+        return modifs
 
     def _try_process_dokey_event(self, key: Keys):
-        if not self.state.modificators.caps:
+        if not self.state.is_special_down:
             return None
         if key == self.config.exit_key:  # TODO command to config
             return DoKeyEvent()
 
-    def _try_update_modifs_by_os(self, modifs_os: Modificators):
+    def _try_update_modifs_by_os(self, modifs_os: Modifs):
         """
         Solution for windows lock win+l issue. Win is down. We can't receive up event, because machine is locked!
         Modifs_os is additional state of modifires.
@@ -191,11 +209,11 @@ class KeyProcessor:
         if not modifs_os:
             return
 
-        if not modifs_os.win and self.state.modificators.win:
-            self.state.modificators.win = False  # for windows lock win+l issue
-        if not modifs_os.control and self.state.modificators.control:
-            self.state.modificators.control = False
-        if not modifs_os.shift and self.state.modificators.shift:
-            self.state.modificators.shift = False
-        if not modifs_os.alt and self.state.modificators.alt:
-            self.state.modificators.alt = False
+        if not modifs_os.win and self.state.modifs.win:
+            self.state.modifs.win = False  # for windows lock win+l issue
+        if not modifs_os.control and self.state.modifs.control:
+            self.state.modifs.control = False
+        if not modifs_os.shift and self.state.modifs.shift:
+            self.state.modifs.shift = False
+        if not modifs_os.alt and self.state.modifs.alt:
+            self.state.modifs.alt = False

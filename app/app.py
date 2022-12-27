@@ -7,7 +7,7 @@ from app.events import Event, SendEvent, CMDEvent, DoKeyEvent, EventLike
 from app.key_processor import KeyProcessor
 from app.config import Config
 from app.keys import Keys, keys_to_send, pretty_trigger
-from app.modificators import Modificators
+from app.modifs import Modifs
 
 
 logger = logging.getLogger(__name__)
@@ -18,12 +18,16 @@ class TrayAppInterface:
         self.set_icon = set_icon
         self.stop = stop
 
+class HelpInterface:
+    def __init__(self, show, hide):
+        self.show = show
+        self.hide = hide
 
 class OSEvent:
     def __init__(self):
         self.key: Keys = Keys.NONE
         self.is_key_up: bool = False
-        self.modifs_os: Modificators = Modificators()
+        self.modifs_os: Modifs = Modifs()
 
 
 class ListenerABC(ABC):
@@ -39,10 +43,12 @@ class App:
         config_path,
         listener: ListenerABC,
         tray_app_interface: TrayAppInterface = None,
+        help_interface: HelpInterface = None,
     ):
         self.config: Config = Config.from_file(config_path)
         self.listener: ListenerABC = listener
         self.tray_app_interface: TrayAppInterface = tray_app_interface
+        self.help_interface: HelpInterface = help_interface
         self.state = AppState()
         self.state.mode = NORMAL
         self.processor: KeyProcessor = KeyProcessor(self.config, self.state)
@@ -55,8 +61,9 @@ class App:
 
     def handle_keyboard_event(self, trigger: OSEvent) -> EventLike:
         """Main function to handle keyboard event. It is a kind of iteration in the main while loop."""
+
         logger.debug(
-            f"EVENT: {trigger.key}, vk{str(trigger.key.value)} {'up' if trigger.is_key_up else 'down'}"
+            f"EVENT//: {trigger.key}, vk{str(trigger.key.value)} {'up' if trigger.is_key_up else 'down'}"
         )
 
         old_mode = self.state.mode
@@ -74,6 +81,12 @@ class App:
         if self.tray_app_interface:
             self.tray_app_interface.set_icon(self.state.mode, self.state.first_step)
 
+        if self.help_interface:
+            if self.state.is_help_down:
+                self.help_interface.show()
+            else:
+                self.help_interface.hide()
+
         if isinstance(event, DoKeyEvent):
             # Only one DoKeyEvent for now. Exit command
             if self.tray_app_interface:
@@ -82,15 +95,16 @@ class App:
         if isinstance(event, SendEvent):
             pretty_send = keys_to_send(event.send)
             trigger_info = pretty_trigger(old_first_step, trigger.key)
-            modifs_info = self.state.modificators.to_string()
+            modifs_info = self.state.modifs.to_string()
             logger.info(
-                f"SEND: {pretty_send} [{(trigger_info)}] {modifs_info}"
+                f"SEND: {pretty_send} [{trigger_info}] {modifs_info}"
             )
 
         # Execute custom command
         if isinstance(event, CMDEvent):
             cmd = event.cmd
             logger.info(f"EXEC CMD: {cmd}")
+            # TODO: this is potential security breach
             os.popen(cmd)  # popen for proper thread/subprocess
 
         return event

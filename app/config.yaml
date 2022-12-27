@@ -1,10 +1,11 @@
 # Main configuration
+special_key: capital # caps lock
 change_mode_key: f
 off_mode_key: q
 exit_key: print_screen
-cli_mode_key: slash
+help_key: slash
 
-caps: # tigger with CapsLock. Used in 1 (normal) and 2 (insert) mode
+special: # tigger with special key (usually caps lock). Used in 1 (normal) and 2 (insert) mode
   e: esc
   r: enter
   t: tab

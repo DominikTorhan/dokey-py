@@ -1,9 +1,10 @@
 import logging
 from logging.handlers import TimedRotatingFileHandler
-from app.app import App, TrayAppInterface
+from app.app import App, TrayAppInterface, HelpInterface
 from app.app_state import NORMAL, INSERT
 from app.keys import Keys
 from os_level.os_pynput import PynpytListener
+from os_level.draw_on_screen import WinImage
 import pystray
 from PIL import Image
 from pathlib import Path
@@ -64,10 +65,13 @@ if __name__ == "__main__":
     set_icon, stop_app = start_tray_app()
     listener = PynpytListener()
     tray_app_interface = TrayAppInterface(set_icon=set_icon, stop=stop_app)
+    win_image = WinImage()
+    help = HelpInterface(show=win_image.show, hide=win_image.clear)
     app = App(
         config_path=config_path,
         listener=listener,
         tray_app_interface=tray_app_interface,
+        help_interface=help,
     )
     try:
         app.main()
