@@ -4,6 +4,8 @@ import ctypes
 import os
 from ctypes.wintypes import HWND, DWORD, RECT
 
+import psutil
+
 user32_dll = ctypes.WinDLL("User32.dll")
 dwmapi = ctypes.WinDLL("dwmapi")
 
@@ -18,6 +20,18 @@ dwmapi = ctypes.WinDLL("dwmapi")
 # print(rect.left, rect.top, rect.right, rect.bottom)
 
 def get_processes() -> Dict[int, str]:
+    # solution 2
+    pids = []
+    a = os.popen("tasklist").readlines()
+    for x in a:
+        try:
+            pids.append(int(x[29:34]))
+        except:
+            pass
+    for each in pids:
+        print(each)
+
+    # solution 1
     output: str = os.popen('wmic process get description, processid').read()
     lines = output.splitlines()
     lines = map(lambda s: s.strip(), lines)
@@ -53,7 +67,11 @@ def get_active_window_process() -> int:
 
 def get_active_process_name() -> str:
     pid = get_active_window_process()
-    processes = get_processes()
-    return processes[pid]
+    process = psutil.Process(pid)
+    name = process.name()
+    print(name)
+    return name
 
 #print(get_active_process_name())
+if __name__ == "__main__":
+    get_active_process_name()
