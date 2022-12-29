@@ -1,14 +1,14 @@
-from typing import Callable, Any, List
 import logging
 import os
 from abc import ABC, abstractmethod
-from app.app_state import AppState, OFF, NORMAL
+from typing import Callable
+
+from app.app_state import AppState, NORMAL
+from app.config import Config
 from app.events import Event, SendEvent, CMDEvent, DoKeyEvent, EventLike
 from app.key_processor import KeyProcessor
-from app.config import Config
 from app.keys import Keys, keys_to_send, pretty_trigger
 from app.modifs import Modifs
-
 
 logger = logging.getLogger(__name__)
 

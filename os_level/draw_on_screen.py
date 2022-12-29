@@ -1,15 +1,13 @@
-import os
+import ctypes
 import logging
-import threading
+import os
+import time
 import tkinter as tk
+from pathlib import Path
 
 import yaml
-from PIL import ImageGrab, ImageTk
-import ctypes
-import time
-from pathlib import Path
-from os_level.windows_api import get_active_process_name
 
+from os_level.windows_api import get_active_process_name
 
 ctypes.windll.shcore.SetProcessDpiAwareness(2)  # windows 10
 
@@ -18,6 +16,7 @@ logger = logging.getLogger(__name__)
 
 class WinImage():
     def __init__(self):
+        #self.root = None
         self.root = tk.Tk()
         self.is_visible = False
 
@@ -27,13 +26,13 @@ class WinImage():
         y = 150
         width = 1400
         height = 700
-
         self.root = tk.Tk()
+        #self.root = tk.Toplevel()
         self.root.geometry(f"{width}x{height}+{x}+{y}")
         self.root.resizable(False, False)
         #self.root.update_idletasks()
-        self.root.overrideredirect(True)  # window ignored by os manager
-        self.root.attributes("-alpha", 0.4)
+        #self.root.overrideredirect(True)  # window ignored by os manager
+        self.root.attributes("-alpha", 0.8)
 
         canvas = tk.Canvas(self.root, width=width, height=height)
         canvas.pack(anchor=tk.CENTER, expand=True)
@@ -44,9 +43,13 @@ class WinImage():
         except:
             text = process_name
 
+        #font = "Arial 10"
+        font = "consolas 10"
+
         canvas.create_text(
-            width / 2, height / 2, fill="black", font="Arial 10", text=text
+            width / 2, height / 2, fill="black", font=font, text=text
         )
+        print("try draw", len(text))
         self.root.update()
 
     def show(self):
@@ -81,7 +84,7 @@ if __name__ == "__main__":
     app.show()
     app.show()
 
-    time.sleep(2)
+    time.sleep(1)
 
     app.clear()
     app.clear()

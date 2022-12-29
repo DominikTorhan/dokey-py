@@ -1,13 +1,15 @@
 import logging
 from logging.handlers import TimedRotatingFileHandler
+from pathlib import Path
+
+import pystray
+from PIL import Image
+
 from app.app import App, TrayAppInterface, HelpInterface
 from app.app_state import NORMAL, INSERT
 from app.keys import Keys
-from os_level.os_pynput import PynpytListener
 from os_level.draw_on_screen import WinImage
-import pystray
-from PIL import Image
-from pathlib import Path
+from os_level.os_pynput import PynpytListener
 
 root = Path(__file__).parent
 TRAY_ICON_OFF = str(root / "assets" / "off.ico")

@@ -71,6 +71,7 @@ class PynpytListener(ListenerABC):
         """
         msg: 256 keydown, 257, keyup, 260 syskeydown, 261 up
         """
+        #logger.info(f"msg={msg} flags={data.flags} vkCode={data.vkCode} scanCode={data.scanCode} time={data.time}")
         if self.is_sending:
             logger.debug(f"Is sending, prevent! Suppress state: {self.listener._suppress}")
             return True
@@ -78,7 +79,6 @@ class PynpytListener(ListenerABC):
         if is_capslock_on():
             return True
         modifs_os = get_modif_state()
-        #logger.info(f"Active process: {get_active_process_name()}")
         is_up = msg == 257 or msg == 261
         try:
             key = Keys(data.vkCode)
