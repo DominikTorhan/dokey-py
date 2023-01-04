@@ -1,19 +1,14 @@
 import logging
-from typing import List, Optional, Any
-from app.app_state import AppState, OFF, NORMAL, INSERT
-from app.config import Config
-from app.events import Event, SendEvent, CMDEvent, DoKeyEvent, EventLike
-from app.modifs import Modifs
-from app.keys import Keys
+from typing import Optional, Any
 
+from app.app_state import AppState, OFF, NORMAL, INSERT, MOUSE
+from app.config import Config
+from app.events import Event, SendEvent, DoKeyEvent, EventLike, MouseEvent
+from app.keys import Keys
+from app.modifs import Modifs
+from app.mouse_config import MouseConfig
 
 logger = logging.getLogger(__name__)
-
-
-def get_prev_mode(mode: int) -> int:
-    if mode == INSERT or mode == NORMAL:
-        return NORMAL
-    return OFF
 
 
 def get_next_mode(mode: int) -> int:
@@ -23,8 +18,9 @@ def get_next_mode(mode: int) -> int:
 
 
 class KeyProcessor:
-    def __init__(self, config, state):
+    def __init__(self, config, mouse_config, state):
         self.config: Config = config
+        self.mouse_config: MouseConfig = mouse_config
         self.state: AppState = state
 
     def process(
@@ -61,6 +57,11 @@ class KeyProcessor:
         if event:
             return event
 
+        # mouse event
+        event = self._try_process_mouse(key)
+        if event:
+            return event
+
         # single step
         event = self._try_process_single_step(key)
         if event:
@@ -94,12 +95,18 @@ class KeyProcessor:
             self.state.prevent_prev_mode_on_special_up = True
             return Event(True)
 
+        if key == self.config.mouse_mode_key:
+            self.state.mode = MOUSE
+            self.state.prevent_prev_mode_on_special_up = True
+            return Event(True)
+
         return None
 
     def _process_special(self, is_key_up: bool) -> Event:
 
-        if is_key_up and not self.state.prevent_prev_mode_on_special_up and self.state.mode == INSERT:
-            self.state.mode = NORMAL  # prev mode at special up
+        if is_key_up and not self.state.prevent_prev_mode_on_special_up:
+            if self.state.mode in [INSERT, MOUSE]:
+                self.state.mode = NORMAL  # prev mode at special up
 
         if is_key_up and self.state.prevent_prev_mode_on_special_up:
             self.state.prevent_prev_mode_on_special_up = False
@@ -163,6 +170,7 @@ class KeyProcessor:
         return Event(True)
 
     def _process_normal_and_insert_with_special(self, key: Keys) -> Optional[SendEvent]:
+        # TODO in normal mode prevent everything???
         if self.state.mode == OFF or not self.state.is_special_down:
             return None
         event = self.config.try_get_special_send(key)
@@ -217,3 +225,14 @@ class KeyProcessor:
             self.state.modifs.shift = False
         if not modifs_os.alt and self.state.modifs.alt:
             self.state.modifs.alt = False
+
+    def _try_process_mouse(self, key: Keys) -> Optional[EventLike]:
+        if self.state.mode != MOUSE:
+            return None
+        self.state.mode = NORMAL
+        for mkey in self.mouse_config.positions:
+            if Keys.from_string(mkey) == key:
+                pos = self.mouse_config.positions[mkey]
+                return MouseEvent(rx=pos[0] / 100, ry=pos[1] / 100)
+        return Event(True)
+

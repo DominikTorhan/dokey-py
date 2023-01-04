@@ -3,12 +3,13 @@ import os
 from abc import ABC, abstractmethod
 from typing import Callable
 
-from app.app_state import AppState, NORMAL
+from app.app_state import AppState, NORMAL, MOUSE
 from app.config import Config
 from app.events import Event, SendEvent, CMDEvent, DoKeyEvent, EventLike
 from app.key_processor import KeyProcessor
 from app.keys import Keys, keys_to_send, pretty_trigger
 from app.modifs import Modifs
+from app.mouse_config import MouseConfig
 
 logger = logging.getLogger(__name__)
 
@@ -22,6 +23,13 @@ class HelpInterface:
     def __init__(self, show, hide):
         self.show = show
         self.hide = hide
+
+class MouseInterface:
+    def __init__(self, show, hide):
+        self.show = show
+        self.hide = hide
+
+
 
 class OSEvent:
     def __init__(self):
@@ -41,17 +49,21 @@ class App:
     def __init__(
         self,
         config_path,
+        mouse_config_path,
         listener: ListenerABC,
         tray_app_interface: TrayAppInterface = None,
         help_interface: HelpInterface = None,
+        mouse_interface: MouseInterface = None,
     ):
         self.config: Config = Config.from_file(config_path)
+        self.mouse_config: MouseConfig = MouseConfig.from_file(mouse_config_path)
         self.listener: ListenerABC = listener
         self.tray_app_interface: TrayAppInterface = tray_app_interface
         self.help_interface: HelpInterface = help_interface
+        self.mouse_interface = mouse_interface
         self.state = AppState()
         self.state.mode = NORMAL
-        self.processor: KeyProcessor = KeyProcessor(self.config, self.state)
+        self.processor: KeyProcessor = KeyProcessor(self.config, self.mouse_config, self.state)
 
     def main(self):
 
@@ -63,7 +75,7 @@ class App:
         """Main function to handle keyboard event. It is a kind of iteration in the main while loop."""
 
         logger.debug(
-            f"EVENT//: {trigger.key}, vk{str(trigger.key.value)} {'up' if trigger.is_key_up else 'down'}"
+            f"EVENT: {trigger.key}, vk{str(trigger.key.value)} {'up' if trigger.is_key_up else 'down'}"
         )
 
         old_mode = self.state.mode
@@ -86,6 +98,13 @@ class App:
                 self.help_interface.show()
             else:
                 self.help_interface.hide()
+
+        if self.mouse_interface:
+            if self.state.mode == MOUSE:
+                self.mouse_interface.show()
+            else:
+                self.mouse_interface.hide()
+
 
         if isinstance(event, DoKeyEvent):
             # Only one DoKeyEvent for now. Exit command

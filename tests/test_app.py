@@ -8,6 +8,7 @@ from os_level.os_pynput import ListenerABC
 from main import App
 
 CONFIG_PATH = Path(__file__).parent.parent / "app" / "config.yaml"
+MOUSE_CONFIG_PATH = Path(__file__).parent.parent / "app" / "mouse_config.yaml"
 
 EXIT_KEY = Keys.PRINT_SCREEN
 
@@ -34,7 +35,7 @@ test_app_playlist = [
             (Keys.CAPS, "u"),
             (Keys.Z, "d"),
             (Keys.Z, "u"),
-            (Keys.I, "d"), # first step
+            (Keys.I, "d"),  # first step
             (Keys.I, "u"),
             (Keys.K, "d"),
             (Keys.K, "u"),
@@ -94,7 +95,11 @@ class TestApp(unittest.TestCase):
         def test_run(events, sends):
             listener = TestListener(events, sends)
 
-            app = App(CONFIG_PATH, listener)
+            app = App(
+                config_path=CONFIG_PATH,
+                mouse_config_path=MOUSE_CONFIG_PATH,
+                listener=listener,
+            )
             app.main()
 
         for test in test_app_playlist:

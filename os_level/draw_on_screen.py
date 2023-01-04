@@ -31,8 +31,10 @@ class WinImage():
         self.root.geometry(f"{width}x{height}+{x}+{y}")
         self.root.resizable(False, False)
         #self.root.update_idletasks()
-        #self.root.overrideredirect(True)  # window ignored by os manager
+        self.root.overrideredirect(True)  # window ignored by os manager
         self.root.attributes("-alpha", 0.8)
+
+        self.root.attributes('-topmost', True)
 
         canvas = tk.Canvas(self.root, width=width, height=height)
         canvas.pack(anchor=tk.CENTER, expand=True)

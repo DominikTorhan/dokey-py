@@ -2,6 +2,7 @@
 special_key: capital # caps lock
 change_mode_key: f
 off_mode_key: q
+mouse_mode_key: u
 exit_key: print_screen
 help_key: slash
 
@@ -17,7 +18,7 @@ special: # tigger with special key (usually caps lock). Used in 1 (normal) and 2
   b: menu # context menu key
   # right hand
   y: ctrl+backspace
-  # u
+  # u reserved to mouse mode
   # i
   # o
   h: backspace

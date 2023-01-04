@@ -5,10 +5,11 @@ from pathlib import Path
 import pystray
 from PIL import Image
 
-from app.app import App, TrayAppInterface, HelpInterface
-from app.app_state import NORMAL, INSERT
+from app.app import App, TrayAppInterface, HelpInterface, MouseInterface
+from app.app_state import NORMAL, INSERT, MOUSE
 from app.keys import Keys
 from os_level.draw_on_screen import WinImage
+from os_level.mouse_window import MouseImage
 from os_level.os_pynput import PynpytListener
 
 root = Path(__file__).parent
@@ -16,6 +17,7 @@ TRAY_ICON_OFF = str(root / "assets" / "off.ico")
 TRAY_ICON_NORMAL = str(root / "assets" / "normal.ico")
 TRAY_ICON_NORMAL_FIRST_STEP = str(root / "assets" / "normal_first_step.ico")
 TRAY_ICON_INSERT = str(root / "assets" / "insert.ico")
+TRAY_ICON_MOUSE = str(root / "assets" / "mouse.ico")
 
 STARTING_MODE = NORMAL
 # TrayApp
@@ -29,6 +31,8 @@ def start_tray_app():
                 path = TRAY_ICON_NORMAL_FIRST_STEP
         if mode == INSERT:
             path = TRAY_ICON_INSERT
+        if mode == MOUSE:
+            path = TRAY_ICON_MOUSE
         return Image.open(path)
 
     def set_icon(mode, first_step):
@@ -44,7 +48,7 @@ def init_logging():
     logger = logging.getLogger()
     # add console handler
     console_handler = logging.StreamHandler()
-    console_handler.setLevel(logging.DEBUG)
+    console_handler.setLevel(logging.INFO)
     logger.addHandler(console_handler)
 
     log_dir_path = root / "logs"
@@ -64,16 +68,21 @@ def init_logging():
 if __name__ == "__main__":
     init_logging()
     config_path = str(root / "app" / "config.yaml")
+    mouse_config_path = str(root / "app" / "mouse_config.yaml")
     set_icon, stop_app = start_tray_app()
     listener = PynpytListener()
     tray_app_interface = TrayAppInterface(set_icon=set_icon, stop=stop_app)
     win_image = WinImage()
+    mouse_image = MouseImage(mouse_config_path)
     help = HelpInterface(show=win_image.show, hide=win_image.clear)
+    mouse = MouseInterface(show=mouse_image.show, hide=mouse_image.clear)
     app = App(
         config_path=config_path,
+        mouse_config_path=mouse_config_path,
         listener=listener,
         tray_app_interface=tray_app_interface,
         help_interface=help,
+        mouse_interface=mouse,
     )
     try:
         app.main()

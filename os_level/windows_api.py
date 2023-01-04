@@ -56,14 +56,27 @@ def get_active_window_process() -> int:
     result = user32_dll.GetWindowThreadProcessId(hwnd, ctypes.byref(lpdw_process_id))
     process_id = lpdw_process_id.value
 
+    rect = get_active_window_rect()
+
+    # rect = RECT()
+    # DMWA_EXTENDED_FRAME_BOUNDS = 9
+    # dwmapi.DwmGetWindowAttribute(HWND(hwnd), DWORD(DMWA_EXTENDED_FRAME_BOUNDS),
+    #                              ctypes.byref(rect), ctypes.sizeof(rect))
+
+    print(rect.left, rect.top, rect.right, rect.bottom)
+
+    return process_id
+
+def get_active_window_rect():
+    hwnd = user32_dll.GetForegroundWindow()
     rect = RECT()
     DMWA_EXTENDED_FRAME_BOUNDS = 9
     dwmapi.DwmGetWindowAttribute(HWND(hwnd), DWORD(DMWA_EXTENDED_FRAME_BOUNDS),
                                  ctypes.byref(rect), ctypes.sizeof(rect))
 
-    print(rect.left, rect.top, rect.right, rect.bottom)
+    return rect
 
-    return process_id
+
 
 def get_active_process_name() -> str:
     pid = get_active_window_process()

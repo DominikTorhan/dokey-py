@@ -1,12 +1,13 @@
-import os
 import logging
-from typing import Dict, List, Any, Union, Optional
-import yaml
+import os
+from collections import defaultdict
 from pathlib import Path
+from typing import Dict, List, Union, Optional
+
+import yaml
 
 from app.events import SendEvent, CMDEvent, WriteEvent, Event, EventLike
 from app.keys import Keys, string_to_multi_keys
-
 
 logger = logging.getLogger(__name__)
 
@@ -16,11 +17,12 @@ class Config:
         self.special_key = Keys.NONE
         self.change_mode_key = Keys.NONE
         self.off_mode_key = Keys.NONE
+        self.mouse_mode_key = Keys.NONE
         self.exit_key = Keys.NONE
         self.help_key = Keys.NONE
         self.special = {}
         self.common = {}
-        self.two_step_events = {}
+        self.two_step_events = defaultdict(dict)
 
     @classmethod
     def from_file(cls, path: Union[str, Path] = "config.yaml"):
@@ -31,6 +33,7 @@ class Config:
         config.special_key = Keys.from_string(config_data.pop("special_key"))
         config.change_mode_key = Keys.from_string(config_data.pop("change_mode_key"))
         config.off_mode_key = Keys.from_string(config_data.pop("off_mode_key"))
+        config.mouse_mode_key = Keys.from_string(config_data.pop("mouse_mode_key"))
         config.exit_key = Keys.from_string(config_data.pop("exit_key"))
         config.help_key = Keys.from_string(config_data.pop("help_key"))
 
@@ -55,8 +58,8 @@ class Config:
         for fs in config_data:
             events = self._convert_dict_events(config_data[fs])
             first_step = Keys.from_string(fs)
-            if first_step not in self.two_step_events:
-                self.two_step_events[first_step] = {}
+            # if first_step not in self.two_step_events:
+            #     self.two_step_events[first_step] = {}
             section = self.two_step_events.get(first_step)
             section.update(events)
 

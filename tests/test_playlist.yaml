@@ -24,8 +24,10 @@ playlist:
    # status changed (next)
   - {input: "0,,s f down", output: "1||s|*||PREV"}
   - {input: "1,,s f down", output: "2||s|*||PREV"}
+  - {input: "1,,s u down", output: "3||s|*||PREV"}
    # status changed (prev)
   - {input: "2,,s capital up", output: "1|||||PREV"}
+  - {input: "3,,s capital up", output: "1|||||PREV"} # mouse mode to normal mode
    # status changed (OFF)
   - {input: "0,,s q down", output: "0||s|*||PREV"}
   - {input: "1,,s q down", output: "0||s|*||PREV"}

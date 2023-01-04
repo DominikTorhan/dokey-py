@@ -4,6 +4,7 @@ from app.modifs import Modifs
 OFF: int = 0
 NORMAL: int = 1
 INSERT: int = 2
+MOUSE: int = 3
 
 
 class AppState:

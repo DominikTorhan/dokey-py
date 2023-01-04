@@ -4,11 +4,13 @@ import ctypes
 
 from pynput import keyboard
 from pynput.keyboard import Key, Controller, KeyCode
+from pynput.mouse import Button
 
 from app.app import ListenerABC, OSEvent
-from app.events import SendEvent, DoKeyEvent, Event, CMDEvent, WriteEvent, EventLike
+from app.events import SendEvent, DoKeyEvent, Event, CMDEvent, WriteEvent, EventLike, MouseEvent
 from app.modifs import Modifs
 from app.keys import Keys, shift_keys, control_keys, alt_keys, win_keys
+from os_level.mouse_window import get_absolute_position_in_active_window
 
 from os_level.windows_api import get_active_process_name
 
@@ -109,6 +111,10 @@ class PynpytListener(ListenerABC):
             self.is_sending = False
             self.listener._suppress = True
             return False
+        if isinstance(event, MouseEvent):
+            self.exec_mouse(event.rx, event.ry)
+            self.listener._suppress = True
+            return False
         if isinstance(event, Event):
             if event.prevent_key_process:
                 self.listener._suppress = True
@@ -139,10 +145,12 @@ class PynpytListener(ListenerABC):
             keyboard.press(char)
             keyboard.release(char)
 
-    def exec_mouse(self):
+    def exec_mouse(self, rx, ry):
         from pynput.mouse import Controller
         mouse = Controller()
-        mouse.position = (10, 10)
+        pos = get_absolute_position_in_active_window(rx, ry)
+        mouse.position = pos
+        mouse.click(Button.left, 1)
 
         #mouse.
         pass

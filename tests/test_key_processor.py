@@ -7,8 +7,10 @@ from app.key_processor import Event, KeyProcessor
 from app.config import Config
 from app.keys import Keys, string_to_multi_keys
 from app.modifs import Modifs
+from app.mouse_config import MouseConfig
 
 CONFIG_PATH = Path(__file__).parent.parent / "app" / "config.yaml"
+MOUSE_CONFIG_PATH = Path(__file__).parent.parent / "app" / "mouse_config.yaml"
 PLAYLIST_PATH = Path(__file__).parent / "test_playlist.yaml"
 
 
@@ -23,8 +25,9 @@ class TestPlaylist(unittest.TestCase):
 
     def test_key_processor(self):
         config = Config.from_file(CONFIG_PATH)
+        mouse_config = MouseConfig.from_file(CONFIG_PATH)
         state = AppState()
-        processor = KeyProcessor(config, state)
+        processor = KeyProcessor(config, mouse_config, state)
 
         playlist = self.playlist_data
 

@@ -36,4 +36,10 @@ class WriteEvent:
         self.text = text
 
 
-EventLike = Union[Event, SendEvent, CMDEvent, DoKeyEvent, WriteEvent]
+class MouseEvent:
+    def __init__(self, rx: float, ry: float):
+        self.rx = rx
+        self.ry = ry
+
+
+EventLike = Union[Event, SendEvent, CMDEvent, DoKeyEvent, WriteEvent, MouseEvent]
