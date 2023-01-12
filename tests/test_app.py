@@ -1,10 +1,10 @@
 import unittest
 from pathlib import Path
 
+from app.app import App
 from app.app import OSEvent, ListenerABC
 from app.events import SendEvent, DoKeyEvent, EventLike
 from app.keys import Keys, keys_to_send
-from main import App
 
 CONFIG_PATH = Path(__file__).parent.parent / "app" / "config.yaml"
 MOUSE_CONFIG_PATH = Path(__file__).parent.parent / "app" / "mouse_config.yaml"
