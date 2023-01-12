@@ -1,10 +1,9 @@
 import unittest
 from pathlib import Path
 
-from app.app import OSEvent
+from app.app import OSEvent, ListenerABC
 from app.events import SendEvent, DoKeyEvent, EventLike
 from app.keys import Keys, keys_to_send
-from os_level.os_pynput import ListenerABC
 from main import App
 
 CONFIG_PATH = Path(__file__).parent.parent / "app" / "config.yaml"

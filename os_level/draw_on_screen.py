@@ -3,6 +3,7 @@ import logging
 import os
 import time
 import tkinter as tk
+from abc import ABC, abstractmethod
 from pathlib import Path
 
 import yaml
@@ -13,6 +14,16 @@ ctypes.windll.shcore.SetProcessDpiAwareness(2)  # windows 10
 
 
 logger = logging.getLogger(__name__)
+
+class Screenable(ABC):
+    @abstractmethod
+    def show(self):
+        pass
+    @abstractmethod
+    def hide(self):
+        pass
+
+
 
 class WinImage():
     def __init__(self):

@@ -49,6 +49,11 @@ class KeyProcessor:
         if event:
             return event
 
+        # diagnostics
+        event = self._process_diagnostics(key, is_key_up)
+        if event:
+            return event
+
         if is_key_up:
             return Event()
 
@@ -134,6 +139,23 @@ class KeyProcessor:
 
         self.state.is_help_down = False
 
+        return Event(True)
+
+    def _process_diagnostics(self, key: Keys, is_key_up: bool) -> Optional[Event]:
+
+        is_diagnostics = key == self.config.diagnostic_key
+
+        if not is_diagnostics:
+            return None
+
+        if not self.state.is_special_down:
+            return None
+
+        if is_key_up:
+            return None
+
+        new_diagnostic_active = not self.state.diagnostic_active
+        self.state.diagnostic_active = new_diagnostic_active
         return Event(True)
 
     def _try_process_single_step(self, key: Keys) -> Optional[Event]:
@@ -233,6 +255,6 @@ class KeyProcessor:
         for mkey in self.mouse_config.positions:
             if Keys.from_string(mkey) == key:
                 pos = self.mouse_config.positions[mkey]
+                # percent to ratio
                 return MouseEvent(rx=pos[0] / 100, ry=pos[1] / 100)
         return Event(True)
-

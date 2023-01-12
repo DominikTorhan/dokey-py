@@ -20,6 +20,7 @@ class Config:
         self.mouse_mode_key = Keys.NONE
         self.exit_key = Keys.NONE
         self.help_key = Keys.NONE
+        self.diagnostic_key = Keys.NONE
         self.special = {}
         self.common = {}
         self.two_step_events = defaultdict(dict)
@@ -36,6 +37,7 @@ class Config:
         config.mouse_mode_key = Keys.from_string(config_data.pop("mouse_mode_key"))
         config.exit_key = Keys.from_string(config_data.pop("exit_key"))
         config.help_key = Keys.from_string(config_data.pop("help_key"))
+        config.diagnostic_key = Keys.from_string(config_data.pop("diagnostic_key"))
 
         config.special = config.convert_dict(config_data.pop("special"))
         config.common = config.convert_dict(config_data.pop("common"))

@@ -16,3 +16,4 @@ class AppState:
         self.is_help_down: bool = False
         self.mode: int = NORMAL
         self.first_step: Keys = Keys.NONE
+        self.diagnostic_active = False

@@ -29,6 +29,11 @@ class MouseInterface:
         self.show = show
         self.hide = hide
 
+class DiagnosticsInterface:
+    def __init__(self, show, hide):
+        self.show = show
+        self.hide = hide
+
 
 
 class OSEvent:
@@ -54,6 +59,7 @@ class App:
         tray_app_interface: TrayAppInterface = None,
         help_interface: HelpInterface = None,
         mouse_interface: MouseInterface = None,
+        diagnostics_interface: DiagnosticsInterface = None,
     ):
         self.config: Config = Config.from_file(config_path)
         self.mouse_config: MouseConfig = MouseConfig.from_file(mouse_config_path)
@@ -61,6 +67,7 @@ class App:
         self.tray_app_interface: TrayAppInterface = tray_app_interface
         self.help_interface: HelpInterface = help_interface
         self.mouse_interface = mouse_interface
+        self.diagnostics_interface = diagnostics_interface
         self.state = AppState()
         self.state.mode = NORMAL
         self.processor: KeyProcessor = KeyProcessor(self.config, self.mouse_config, self.state)
@@ -104,6 +111,12 @@ class App:
                 self.mouse_interface.show()
             else:
                 self.mouse_interface.hide()
+
+        if self.diagnostics_interface:
+            if self.state.diagnostic_active:
+                self.diagnostics_interface.show()
+            else:
+                self.diagnostics_interface.hide()
 
 
         if isinstance(event, DoKeyEvent):

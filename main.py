@@ -5,9 +5,10 @@ from pathlib import Path
 import pystray
 from PIL import Image
 
-from app.app import App, TrayAppInterface, HelpInterface, MouseInterface
+from app.app import App, TrayAppInterface, HelpInterface, MouseInterface, DiagnosticsInterface
 from app.app_state import NORMAL, INSERT, MOUSE
 from app.keys import Keys
+from os_level.diagnostic_window import DiagnosticWindow
 from os_level.draw_on_screen import WinImage
 from os_level.mouse_window import MouseImage
 from os_level.os_pynput import PynpytListener
@@ -74,8 +75,10 @@ if __name__ == "__main__":
     tray_app_interface = TrayAppInterface(set_icon=set_icon, stop=stop_app)
     win_image = WinImage()
     mouse_image = MouseImage(mouse_config_path)
+    diagnostics_window = DiagnosticWindow(None)
     help = HelpInterface(show=win_image.show, hide=win_image.clear)
     mouse = MouseInterface(show=mouse_image.show, hide=mouse_image.clear)
+    diagnostics = DiagnosticsInterface(show=mouse_image.show, hide=mouse_image.clear)
     app = App(
         config_path=config_path,
         mouse_config_path=mouse_config_path,

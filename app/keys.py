@@ -353,6 +353,8 @@ keyboard_to_dokey_map = {
     "square_bracket_open": Keys.SQUARE_BRACKET_OPEN,
     "]": Keys.SQUARE_BRACKET_CLOSE,
     "square_bracket_close": Keys.SQUARE_BRACKET_CLOSE,
+    "insert": Keys.INSERT,
+    "ins": Keys.INSERT,
 }
 
 control_keys = [Keys.CONTROL, Keys.LEFT_CTRL, Keys.RIGHT_CTRL]

@@ -5,8 +5,10 @@ off_mode_key: q
 mouse_mode_key: u
 exit_key: print_screen
 help_key: slash
+diagnostic_key: backslash
 
 special: # tigger with special key (usually caps lock). Used in 1 (normal) and 2 (insert) mode
+  # q offmode
   e: esc
   r: enter
   t: tab
@@ -72,10 +74,12 @@ i: # first step i
   j: end, enter # Insert line below
   k: up, end, enter # Insert line above
   c: ctrl+/ # comment / uncomment code in pycharm
+  p: alt+insert # freecomander copy current path
+  n: shift+alt+insert # freecomander copy current file name
+  m: ctrl+alt+insert # freecomander copy current dir path
   # other features, for now only for tests
   d1: __command__<start chrome /new-tab> # browser
   d2: __write__<my_text>
-
 
 d: # first step d
   r: alt+4 # pycharm run window
