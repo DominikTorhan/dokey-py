@@ -48,11 +48,11 @@ class Config:
             dct[Keys.from_string(fs)] = events
         config.two_step_events = dct
 
-        config.try_load_users_config(path)
+        config.try_load_users_config()
         return config
 
-    def try_load_users_config(self, path):
-        user_config = Path(path).parent / "user_config.yaml"
+    def try_load_users_config(self):
+        user_config = Path(os.getenv("HOMEPATH")) / ".dokey" / "user_config.yaml"
         if not os.path.exists(user_config):
             return
         with open(user_config, "r") as f:

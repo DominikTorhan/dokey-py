@@ -71,6 +71,7 @@ a:
   b: __write__<test_override>
 
 i: # first step i
+  s: ctrl+f12
   j: end, enter # Insert line below
   k: up, end, enter # Insert line above
   c: ctrl+/ # comment / uncomment code in pycharm
@@ -82,6 +83,7 @@ i: # first step i
   d2: __write__<my_text>
 
 d: # first step d
+  e: alt+1 # pycharm project window
   r: alt+4 # pycharm run window
   p: ctrl+shift+quote
   d: alt+5 # pycharm debug window
