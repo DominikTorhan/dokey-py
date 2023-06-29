@@ -65,6 +65,7 @@ f: # first step f
   # other shortcuts
   s: shift+esc # shift ESC
   j: ctrl+alt+tab
+  k: alt+tab
 
 #Bellow Two step combinations:
 a:
