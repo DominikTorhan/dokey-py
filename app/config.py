@@ -19,6 +19,7 @@ class Config:
         self.off_mode_key = Keys.NONE
         self.mouse_mode_key = Keys.NONE
         self.exit_key = Keys.NONE
+        self.clear_screen_key = Keys.NONE
         self.help_key = Keys.NONE
         self.diagnostic_key = Keys.NONE
         self.special = {}
@@ -36,6 +37,7 @@ class Config:
         config.off_mode_key = Keys.from_string(config_data.pop("off_mode_key"))
         config.mouse_mode_key = Keys.from_string(config_data.pop("mouse_mode_key"))
         config.exit_key = Keys.from_string(config_data.pop("exit_key"))
+        config.clear_screen_key = Keys.from_string(config_data.pop("clear_screen_key"))
         config.help_key = Keys.from_string(config_data.pop("help_key"))
         config.diagnostic_key = Keys.from_string(config_data.pop("diagnostic_key"))
 

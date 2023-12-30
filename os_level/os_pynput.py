@@ -93,7 +93,8 @@ class PynpytListener(ListenerABC):
         os_event.modifs_os = modifs_os
         event: EventLike = self.func(os_event)
         if isinstance(event, DoKeyEvent):
-            self.listener.stop()
+            if event.event_type == "exit":
+                self.listener.stop()
             self.listener._suppress = True
             return False
         if isinstance(event, SendEvent):

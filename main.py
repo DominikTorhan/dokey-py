@@ -1,6 +1,7 @@
 import logging
 from logging.handlers import TimedRotatingFileHandler
 from pathlib import Path
+import argparse
 
 import pystray
 from PIL import Image
@@ -67,18 +68,26 @@ def init_logging():
 
 # main entrypoint
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser(prog="Dokey")
+    parser.add_argument("-p", "--plain", action="store_true", default=False, help="no graphics mode") # no graphics mode
+    args = parser.parse_args()
     init_logging()
     config_path = str(root / "app" / "config.yaml")
     mouse_config_path = str(root / "app" / "mouse_config.yaml")
     set_icon, stop_app = start_tray_app()
     listener = PynpytListener()
     tray_app_interface = TrayAppInterface(set_icon=set_icon, stop=stop_app)
-    win_image = WinImage()
-    mouse_image = MouseImage(mouse_config_path)
-    diagnostics_window = DiagnosticWindow(None)
-    help = HelpInterface(show=win_image.show, hide=win_image.clear)
-    mouse = MouseInterface(show=mouse_image.show, hide=mouse_image.clear)
-    diagnostics = DiagnosticsInterface(show=mouse_image.show, hide=mouse_image.clear)
+    if not args.plain:
+        win_image = WinImage()
+        mouse_image = MouseImage(mouse_config_path)
+        diagnostics_window = DiagnosticWindow(None)
+        help = HelpInterface(show=win_image.show, hide=win_image.clear)
+        mouse = MouseInterface(show=mouse_image.show, hide=mouse_image.clear, clear=mouse_image.clear)
+        diagnostics = DiagnosticsInterface(show=mouse_image.show, hide=mouse_image.clear)
+    else:
+        print("Start in plain mode!")
+        help = None
+        mouse = None
     app = App(
         config_path=config_path,
         mouse_config_path=mouse_config_path,

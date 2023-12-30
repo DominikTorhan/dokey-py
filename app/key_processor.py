@@ -229,7 +229,10 @@ class KeyProcessor:
         if not self.state.is_special_down:
             return None
         if key == self.config.exit_key:  # TODO command to config
-            return DoKeyEvent()
+            return DoKeyEvent("exit")
+        if key == self.config.clear_screen_key:
+            return DoKeyEvent("clear_screen")
+        return None
 
     def _try_update_modifs_by_os(self, modifs_os: Modifs):
         """

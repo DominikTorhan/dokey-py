@@ -25,9 +25,10 @@ class HelpInterface:
         self.hide = hide
 
 class MouseInterface:
-    def __init__(self, show, hide):
+    def __init__(self, show, hide, clear):
         self.show = show
         self.hide = hide
+        self.clear = clear
 
 class DiagnosticsInterface:
     def __init__(self, show, hide):
@@ -120,9 +121,16 @@ class App:
 
 
         if isinstance(event, DoKeyEvent):
-            # Only one DoKeyEvent for now. Exit command
-            if self.tray_app_interface:
-                self.tray_app_interface.stop()
+            logger.info(f"DokeyEvent: {event.event_type}")
+            if event.event_type == "exit":
+                logger.info("debug1")
+                if self.tray_app_interface:
+                    self.tray_app_interface.stop()
+            elif event.event_type == "clear_screen":
+                logger.info("debug2")
+                if self.mouse_interface:
+                    self.mouse_interface.clear()
+
 
         if isinstance(event, SendEvent):
             pretty_send = keys_to_send(event.send)

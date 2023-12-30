@@ -26,9 +26,9 @@ class CMDEvent:
 
 
 class DoKeyEvent:
-    def __init__(self):
-        # now only one case: Exit
-        pass
+    def __init__(self, event_type: str):
+        # Exit or clear screen
+        self.event_type = event_type
 
 
 class WriteEvent:

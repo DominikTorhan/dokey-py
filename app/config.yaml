@@ -3,7 +3,8 @@ special_key: capital # caps lock
 change_mode_key: f
 off_mode_key: q
 mouse_mode_key: u
-exit_key: print_screen
+clear_screen_key: s
+exit_key: esc # ESC
 help_key: slash
 diagnostic_key: backslash
 
