@@ -71,7 +71,7 @@ class MouseImage:
     def __init__(self, mouse_config_path):
         # self.root = None
         self.root = tk.Tk()
-        self.is_visible = False
+        # self.is_visible = False
         self.mouse_config = MouseConfig.from_file(mouse_config_path)
 
     def _draw(self):
@@ -92,8 +92,6 @@ class MouseImage:
         #self.root.attributes("-alpha", 0.5)
 
         self.root.attributes("-topmost", True)
-
-
 
         canvas = tk.Canvas(self.root, bg="blue", width=width, height=height)
         self.root.wm_attributes("-transparentcolor", "blue")
@@ -121,16 +119,14 @@ class MouseImage:
         self.root.update()
 
     def show(self):
-        if self.is_visible:
+        if self.root.children:
             return
         self._draw()
-        self.is_visible = True
 
     def clear(self):
-        if not self.is_visible:
+        if not self.root.children:
             return
         self.root.destroy()
-        self.is_visible = False
 
 
 if __name__ == "__main__":

@@ -27,9 +27,7 @@ class Screenable(ABC):
 
 class WinImage():
     def __init__(self):
-        #self.root = None
         self.root = tk.Tk()
-        self.is_visible = False
 
     def _draw(self):
         # position of window
@@ -38,10 +36,8 @@ class WinImage():
         width = 1400
         height = 700
         self.root = tk.Tk()
-        #self.root = tk.Toplevel()
         self.root.geometry(f"{width}x{height}+{x}+{y}")
         self.root.resizable(False, False)
-        #self.root.update_idletasks()
         self.root.overrideredirect(True)  # window ignored by os manager
         self.root.attributes("-alpha", 0.8)
 
@@ -66,16 +62,14 @@ class WinImage():
         self.root.update()
 
     def show(self):
-        if self.is_visible:
+        if self.root.children:
             return
         self._draw()
-        self.is_visible = True
 
     def clear(self):
-        if not self.is_visible:
+        if not self.root.children:
             return
         self.root.destroy()
-        self.is_visible = False
 
 
 def get_help_app(process_name):
