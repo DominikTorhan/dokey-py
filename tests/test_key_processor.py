@@ -106,7 +106,9 @@ class TestPlaylist(unittest.TestCase):
             self.assertEqual(first_step, state.first_step)
             self.assertEqual(is_special_down, state.is_special_down)
             self.assertEqual(modifs, state.modifs.to_string())
-            self.assertEqual(prevent_prev_mode_on_special_up, state.prevent_prev_mode_on_special_up)
+            self.assertEqual(
+                prevent_prev_mode_on_special_up, state.prevent_prev_mode_on_special_up
+            )
 
             actual_send = []
             actual_prevent_key_process = True

@@ -89,7 +89,7 @@ class MouseImage:
         self.root.resizable(False, False)
         # self.root.update_idletasks()
         self.root.overrideredirect(True)  # window ignored by os manager
-        #self.root.attributes("-alpha", 0.5)
+        # self.root.attributes("-alpha", 0.5)
 
         self.root.attributes("-topmost", True)
 
@@ -98,10 +98,10 @@ class MouseImage:
         canvas.pack(anchor=tk.CENTER, expand=True)
 
         def calc_x(val):
-            return (width * val)
+            return width * val
 
         def calc_y(val):
-            return (height * val)
+            return height * val
 
         font = "consolas 30"
 

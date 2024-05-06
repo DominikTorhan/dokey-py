@@ -1,4 +1,3 @@
-
 class Modifs:
 
     def __init__(self):
@@ -22,4 +21,3 @@ class Modifs:
             s += "w"
 
         return s
-

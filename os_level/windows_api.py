@@ -19,6 +19,7 @@ dwmapi = ctypes.WinDLL("dwmapi")
 #
 # print(rect.left, rect.top, rect.right, rect.bottom)
 
+
 def get_processes() -> Dict[int, str]:
     # solution 2
     pids = []
@@ -32,11 +33,11 @@ def get_processes() -> Dict[int, str]:
         print(each)
 
     # solution 1
-    output: str = os.popen('wmic process get description, processid').read()
+    output: str = os.popen("wmic process get description, processid").read()
     lines = output.splitlines()
     lines = map(lambda s: s.strip(), lines)
     lines = list(filter(None, lines))
-    lines.pop(0) # first line is a header
+    lines.pop(0)  # first line is a header
     processes = {}
     for line in lines:
         strs = line.split()
@@ -45,12 +46,13 @@ def get_processes() -> Dict[int, str]:
         processes[pid] = name
     return processes
 
+
 def get_active_window_process() -> int:
     hwnd = user32_dll.GetForegroundWindow()
     length = user32_dll.GetWindowTextLengthW(hwnd)
     buf = ctypes.create_unicode_buffer(length + 1)
     user32_dll.GetWindowTextW(hwnd, buf, length + 1)
-    #title = buf.value if buf.value else None
+    # title = buf.value if buf.value else None
 
     lpdw_process_id = ctypes.c_ulong()
     result = user32_dll.GetWindowThreadProcessId(hwnd, ctypes.byref(lpdw_process_id))
@@ -67,15 +69,19 @@ def get_active_window_process() -> int:
 
     return process_id
 
+
 def get_active_window_rect():
     hwnd = user32_dll.GetForegroundWindow()
     rect = RECT()
     DMWA_EXTENDED_FRAME_BOUNDS = 9
-    dwmapi.DwmGetWindowAttribute(HWND(hwnd), DWORD(DMWA_EXTENDED_FRAME_BOUNDS),
-                                 ctypes.byref(rect), ctypes.sizeof(rect))
+    dwmapi.DwmGetWindowAttribute(
+        HWND(hwnd),
+        DWORD(DMWA_EXTENDED_FRAME_BOUNDS),
+        ctypes.byref(rect),
+        ctypes.sizeof(rect),
+    )
 
     return rect
-
 
 
 def get_active_process_name() -> str:
@@ -85,6 +91,7 @@ def get_active_process_name() -> str:
     print(name)
     return name
 
-#print(get_active_process_name())
+
+# print(get_active_process_name())
 if __name__ == "__main__":
     get_active_process_name()

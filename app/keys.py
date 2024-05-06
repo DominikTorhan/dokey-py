@@ -113,7 +113,6 @@ class Keys(Enum):
     SQUARE_BRACKET_CLOSE = 221  # ] oem_6
     APOSTROPHE = 222  # ' oem_7
 
-
     @staticmethod
     def from_string(s: str) -> "Keys":
         if not s:
@@ -152,12 +151,7 @@ class Keys(Enum):
 
     def is_modif_ex(self):
         """Ctrl, alt, shift, win"""
-        return (
-            self.is_control()
-            or self.is_alt()
-            or self.is_shift()
-            or self.is_win()
-        )
+        return self.is_control() or self.is_alt() or self.is_shift() or self.is_win()
 
     def is_first_step(self):
         return self in FIRST_STEPS
@@ -381,6 +375,7 @@ def keys_to_send(keys: List[Keys]) -> str:
             send += ","
     send = send.rstrip(",")
     return send
+
 
 def pretty_trigger(first_step: Keys, key: Keys) -> str:
     s = ""

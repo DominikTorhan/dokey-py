@@ -6,7 +6,13 @@ import argparse
 import pystray
 from PIL import Image
 
-from app.app import App, TrayAppInterface, HelpInterface, MouseInterface, DiagnosticsInterface
+from app.app import (
+    App,
+    TrayAppInterface,
+    HelpInterface,
+    MouseInterface,
+    DiagnosticsInterface,
+)
 from app.app_state import NORMAL, INSERT, MOUSE
 from app.keys import Keys
 from os_level.diagnostic_window import DiagnosticWindow
@@ -22,6 +28,8 @@ TRAY_ICON_INSERT = str(root / "assets" / "insert.ico")
 TRAY_ICON_MOUSE = str(root / "assets" / "mouse.ico")
 
 STARTING_MODE = NORMAL
+
+
 # TrayApp
 def start_tray_app():
     def get_icon(mode: int, first_step: Keys = Keys.NONE):
@@ -69,7 +77,9 @@ def init_logging():
 # main entrypoint
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(prog="Dokey")
-    parser.add_argument("-p", "--plain", action="store_true", default=False, help="no graphics mode") # no graphics mode
+    parser.add_argument(
+        "-p", "--plain", action="store_true", default=False, help="no graphics mode"
+    )  # no graphics mode
     args = parser.parse_args()
     init_logging()
     config_path = str(root / "app" / "config.yaml")
@@ -82,8 +92,12 @@ if __name__ == "__main__":
         mouse_image = MouseImage(mouse_config_path)
         diagnostics_window = DiagnosticWindow(None)
         help = HelpInterface(show=win_image.show, hide=win_image.clear)
-        mouse = MouseInterface(show=mouse_image.show, hide=mouse_image.clear, clear=mouse_image.clear)
-        diagnostics = DiagnosticsInterface(show=mouse_image.show, hide=mouse_image.clear)
+        mouse = MouseInterface(
+            show=mouse_image.show, hide=mouse_image.clear, clear=mouse_image.clear
+        )
+        diagnostics = DiagnosticsInterface(
+            show=mouse_image.show, hide=mouse_image.clear
+        )
     else:
         print("Start in plain mode!")
         help = None

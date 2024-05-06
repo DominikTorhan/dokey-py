@@ -7,7 +7,15 @@ from pynput.keyboard import Key, Controller, KeyCode
 from pynput.mouse import Button
 
 from app.app import ListenerABC, OSEvent
-from app.events import SendEvent, DoKeyEvent, Event, CMDEvent, WriteEvent, EventLike, MouseEvent
+from app.events import (
+    SendEvent,
+    DoKeyEvent,
+    Event,
+    CMDEvent,
+    WriteEvent,
+    EventLike,
+    MouseEvent,
+)
 from app.modifs import Modifs
 from app.keys import Keys, shift_keys, control_keys, alt_keys, win_keys
 from os_level.mouse_window import get_absolute_position_in_active_window
@@ -53,6 +61,7 @@ def get_modif_state():
     logger.debug(f"os modifs {repr(modifs)}")
     return modifs
 
+
 class PynpytListener(ListenerABC):
     def __init__(self):
         self.listener = keyboard.Listener(
@@ -73,9 +82,11 @@ class PynpytListener(ListenerABC):
         """
         msg: 256 keydown, 257, keyup, 260 syskeydown, 261 up
         """
-        #logger.info(f"msg={msg} flags={data.flags} vkCode={data.vkCode} scanCode={data.scanCode} time={data.time}")
+        # logger.info(f"msg={msg} flags={data.flags} vkCode={data.vkCode} scanCode={data.scanCode} time={data.time}")
         if self.is_sending:
-            logger.debug(f"Is sending, prevent! Suppress state: {self.listener._suppress}")
+            logger.debug(
+                f"Is sending, prevent! Suppress state: {self.listener._suppress}"
+            )
             return True
         self.listener._suppress = False
         if is_capslock_on():
@@ -148,10 +159,11 @@ class PynpytListener(ListenerABC):
 
     def exec_mouse(self, rx, ry):
         from pynput.mouse import Controller
+
         mouse = Controller()
         pos = get_absolute_position_in_active_window(rx, ry)
         mouse.position = pos
         mouse.click(Button.left, 1)
 
-        #mouse.
+        # mouse.
         pass

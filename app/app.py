@@ -19,10 +19,12 @@ class TrayAppInterface:
         self.set_icon = set_icon
         self.stop = stop
 
+
 class HelpInterface:
     def __init__(self, show, hide):
         self.show = show
         self.hide = hide
+
 
 class MouseInterface:
     def __init__(self, show, hide, clear):
@@ -30,11 +32,11 @@ class MouseInterface:
         self.hide = hide
         self.clear = clear
 
+
 class DiagnosticsInterface:
     def __init__(self, show, hide):
         self.show = show
         self.hide = hide
-
 
 
 class OSEvent:
@@ -71,7 +73,9 @@ class App:
         self.diagnostics_interface = diagnostics_interface
         self.state = AppState()
         self.state.mode = NORMAL
-        self.processor: KeyProcessor = KeyProcessor(self.config, self.mouse_config, self.state)
+        self.processor: KeyProcessor = KeyProcessor(
+            self.config, self.mouse_config, self.state
+        )
 
     def main(self):
 
@@ -119,7 +123,6 @@ class App:
             else:
                 self.diagnostics_interface.hide()
 
-
         if isinstance(event, DoKeyEvent):
             logger.info(f"DokeyEvent: {event.event_type}")
             if event.event_type == "exit":
@@ -131,14 +134,11 @@ class App:
                 if self.mouse_interface:
                     self.mouse_interface.clear()
 
-
         if isinstance(event, SendEvent):
             pretty_send = keys_to_send(event.send)
             trigger_info = pretty_trigger(old_first_step, trigger.key)
             modifs_info = self.state.modifs.to_string()
-            logger.info(
-                f"SEND: {pretty_send} [{trigger_info}] {modifs_info}"
-            )
+            logger.info(f"SEND: {pretty_send} [{trigger_info}] {modifs_info}")
 
         # Execute custom command
         if isinstance(event, CMDEvent):

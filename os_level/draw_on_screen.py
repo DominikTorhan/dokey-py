@@ -15,17 +15,18 @@ ctypes.windll.shcore.SetProcessDpiAwareness(2)  # windows 10
 
 logger = logging.getLogger(__name__)
 
+
 class Screenable(ABC):
     @abstractmethod
     def show(self):
         pass
+
     @abstractmethod
     def hide(self):
         pass
 
 
-
-class WinImage():
+class WinImage:
     def __init__(self):
         self.root = tk.Tk()
 
@@ -41,7 +42,7 @@ class WinImage():
         self.root.overrideredirect(True)  # window ignored by os manager
         self.root.attributes("-alpha", 0.8)
 
-        self.root.attributes('-topmost', True)
+        self.root.attributes("-topmost", True)
 
         canvas = tk.Canvas(self.root, width=width, height=height)
         canvas.pack(anchor=tk.CENTER, expand=True)
@@ -52,12 +53,10 @@ class WinImage():
         except:
             text = process_name
 
-        #font = "Arial 10"
+        # font = "Arial 10"
         font = "consolas 10"
 
-        canvas.create_text(
-            width / 2, height / 2, fill="black", font=font, text=text
-        )
+        canvas.create_text(width / 2, height / 2, fill="black", font=font, text=text)
         print("try draw", len(text))
         self.root.update()
 
@@ -82,6 +81,7 @@ def get_help_app(process_name):
             continue
         content += "\n" + "\n".join(data[key])
     return content
+
 
 if __name__ == "__main__":
 
