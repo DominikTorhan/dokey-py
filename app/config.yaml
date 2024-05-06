@@ -24,6 +24,7 @@ special: # tigger with special key (usually caps lock). Used in 1 (normal) and 2
   # u reserved to mouse mode
   # i
   # o
+  # p os pallete?
   h: backspace
   j: enter
   # k
