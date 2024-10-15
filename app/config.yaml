@@ -33,22 +33,21 @@ special: # tigger with special key (usually caps lock). Used in 1 (normal) and 2
   m: ctrl+tab
   comma: ctrl+shift+tab
 
-
 common: # without first step
-  h: left         # left arrow
-  j: down         # down arrow
-  k: up           # up arrow
-  l: right        # right arrow
+  h: left # left arrow
+  j: down # down arrow
+  k: up # up arrow
+  l: right # right arrow
   n: home
   m: page down
   comma: page up
   period: end
-  y: ctrl+left        # CTRL + left arrow (go by word)
-  o: ctrl+right       # CTRL + right arrow (go by word)
-  z: ctrl+z             # CTRL + z
-  x: ctrl+x             # CTRL + x
-  c: ctrl+c             # CTRL + c
-  v: ctrl+v             # CTRL + v
+  y: ctrl+left # CTRL + left arrow (go by word)
+  o: ctrl+right # CTRL + right arrow (go by word)
+  z: ctrl+z # CTRL + z
+  x: ctrl+x # CTRL + x
+  c: ctrl+c # CTRL + c
+  v: ctrl+v # CTRL + v
 
 f: # first step f
   # F keys
@@ -80,6 +79,7 @@ i: # first step i
   k: up, end, enter # Insert line above
   c: ctrl+/ # comment / uncomment code in pycharm
   p: alt+insert # freecomander copy current path
+  v: shift+insert # linux paste
   n: shift+alt+insert # freecomander copy current file name
   m: ctrl+alt+insert # freecomander copy current dir path
   # other features, for now only for tests
