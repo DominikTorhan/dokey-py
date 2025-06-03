@@ -1,5 +1,7 @@
 import logging
 import os
+import shlex
+import subprocess
 from abc import ABC, abstractmethod
 from typing import Callable
 
@@ -144,7 +146,20 @@ class App:
         if isinstance(event, CMDEvent):
             cmd = event.cmd
             logger.info(f"EXEC CMD: {cmd}")
-            # TODO: this is potential security breach
-            os.popen(cmd)  # popen for proper thread/subprocess
+            run_command(cmd)
 
         return event
+
+
+def run_command(cmd: str) -> None:
+    """Execute command without invoking the shell when possible."""
+    try:
+        args = shlex.split(cmd)
+    except ValueError as exc:
+        logger.error(f"Invalid command '{cmd}': {exc}")
+        return
+
+    if os.name == "nt" and args and args[0].lower() == "start":
+        subprocess.Popen(["cmd", "/c"] + args)
+    else:
+        subprocess.Popen(args)

@@ -1,5 +1,7 @@
 import unittest
 from pathlib import Path
+from unittest import mock
+import os
 
 from app.app import App
 from app.app import OSEvent, ListenerABC
@@ -104,3 +106,15 @@ class TestApp(unittest.TestCase):
         for test in test_app_playlist:
             # check if doesn't crash
             test_run(test[0], test[1])
+
+
+class TestRunCommand(unittest.TestCase):
+    def test_run_command(self):
+        from app.app import run_command
+
+        with mock.patch("app.app.subprocess.Popen") as popen:
+            run_command("echo test")
+            if os.name == "nt":
+                popen.assert_called_with(["cmd", "/c", "echo", "test"])
+            else:
+                popen.assert_called_with(["echo", "test"])
