@@ -64,6 +64,7 @@ f: # first step f
   t: f11
   f: f12
   # other shortcuts
+  h: ctrl+` # Cmder focus terminal
   s: shift+esc # shift ESC
   j: ctrl+alt+tab
   k: alt+tab
@@ -88,12 +89,13 @@ i: # first step i
 
 d: # first step d
   e: alt+1 # pycharm project window
-  r: alt+4 # pycharm run window
+  r: shift+alt+f12 # vscode find all references
   p: ctrl+shift+quote
   d: alt+5 # pycharm debug window
   f: alt+3 # pycharm find window
   t: alt+f12 # pycharm show terminal
   z: ctrl+f7,ctrl+f8 # EvernoteFocusListTrick
+  c: ctrl+k,w # vscode close all tabs
 
 q:
   d1: alt+shift+f1
