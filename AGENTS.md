@@ -183,6 +183,21 @@ change is in the wrong layer.
 `Config.dokey_dir()` resolves the user-override directory as `%HOMEPATH%\.dokey`
 on Windows and `~/.dokey` elsewhere, which is what allows the above.
 
+## Versioning
+
+`app/version.py` holds the single source of truth (`VERSION`). It is logged as the
+first line of every run, so a `logs/dokey.log` always identifies the build that
+produced it:
+
+```
+DoKey 1.0.1
+init logging!
+```
+
+Releases are marked by tagging the merge commit on `main` with a matching `v`
+prefix — bump `VERSION`, merge, then `git tag v1.0.1 && git push origin v1.0.1`.
+Keep the tag and `VERSION` in step.
+
 ## Working agreements
 
 - Ask before changing `app/config.yaml` — it is the owner's live, hand-tuned keymap,

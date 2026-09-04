@@ -7,6 +7,7 @@ from abc import ABC, abstractmethod
 import yaml
 
 from app.config import dokey_dir
+from app.version import VERSION
 from os_level.windows_api import get_active_process_name
 
 ctypes.windll.shcore.SetProcessDpiAwareness(2)  # windows 10
@@ -56,6 +57,15 @@ class WinImage:
         font = "consolas 10"
 
         canvas.create_text(width / 2, height / 2, fill="black", font=font, text=text)
+        # version in the corner, so it never shifts the centred help text
+        canvas.create_text(
+            width - 10,
+            height - 10,
+            anchor=tk.SE,
+            fill="gray40",
+            font="consolas 9",
+            text=f"DoKey {VERSION}",
+        )
         print("try draw", len(text))
         self.root.update()
 
