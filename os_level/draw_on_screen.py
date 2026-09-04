@@ -1,13 +1,12 @@
 import ctypes
 import logging
-import os
 import time
 import tkinter as tk
 from abc import ABC, abstractmethod
-from pathlib import Path
 
 import yaml
 
+from app.config import dokey_dir
 from os_level.windows_api import get_active_process_name
 
 ctypes.windll.shcore.SetProcessDpiAwareness(2)  # windows 10
@@ -72,7 +71,7 @@ class WinImage:
 
 
 def get_help_app(process_name):
-    path = Path(os.environ["HOMEPATH"]) / ".dokey" / "help.yaml"
+    path = dokey_dir() / "help.yaml"
     content = process_name
     with open(path, "r") as f:
         data: dict = yaml.safe_load(f)

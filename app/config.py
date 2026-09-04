@@ -12,6 +12,17 @@ from app.keys import Keys, string_to_multi_keys
 logger = logging.getLogger(__name__)
 
 
+def dokey_dir() -> Path:
+    """Directory holding the user's overrides (~/.dokey).
+
+    HOMEPATH is Windows-only, so it is tried first to preserve existing
+    behaviour (some Windows setups redirect it), then we fall back to the
+    platform home. The fallback is what makes app/ importable off Windows.
+    """
+    home = os.getenv("HOMEPATH") or Path.home()
+    return Path(home) / ".dokey"
+
+
 class Config:
     def __init__(self):
         self.special_key = Keys.NONE
@@ -54,7 +65,7 @@ class Config:
         return config
 
     def try_load_users_config(self):
-        user_config = Path(os.getenv("HOMEPATH")) / ".dokey" / "user_config.yaml"
+        user_config = dokey_dir() / "user_config.yaml"
         if not os.path.exists(user_config):
             return
         with open(user_config, "r") as f:

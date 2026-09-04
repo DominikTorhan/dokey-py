@@ -2,7 +2,7 @@ import unittest
 from pathlib import Path
 import yaml
 from app.app_state import AppState
-from app.events import SendEvent, CMDEvent, WriteEvent
+from app.events import SendEvent, CMDEvent, WriteEvent, DoKeyEvent
 from app.key_processor import Event, KeyProcessor
 from app.config import Config
 from app.keys import Keys, string_to_multi_keys
@@ -83,6 +83,10 @@ class TestPlaylist(unittest.TestCase):
                 self.assertEqual(1, state.mode)
                 self.assertEqual(Keys.NONE, state.first_step)
                 self.assertEqual(expected, event.text)
+                continue
+            if isinstance(event, DoKeyEvent):
+                # app-level command (exit / clear_screen); expected is the event type
+                self.assertEqual(expected, event.event_type)
                 continue
             # 0||c|||PREV
 

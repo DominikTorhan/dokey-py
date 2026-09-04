@@ -9,7 +9,7 @@ from app.keys import Keys, keys_to_send
 CONFIG_PATH = Path(__file__).parent.parent / "app" / "config.yaml"
 MOUSE_CONFIG_PATH = Path(__file__).parent.parent / "app" / "mouse_config.yaml"
 
-EXIT_KEY = Keys.PRINT_SCREEN
+EXIT_KEY = Keys.ESC  # must match exit_key in app/config.yaml
 
 test_app_playlist = [
     (
@@ -22,7 +22,7 @@ test_app_playlist = [
             (Keys.CAPS, "d"),
             (Keys.CAPS, "u"),
             (Keys.CAPS, "d"),
-            (EXIT_KEY, "d"),  # caps+backspace - exit app
+            (EXIT_KEY, "d"),  # caps+esc - exit app
         ],
         ["down"],
     ),
@@ -55,7 +55,7 @@ test_app_playlist = [
             (Keys.Z, "d"),  # dz -> ctrl+f7,ctrl+f8 (evernote trick)
             (Keys.Z, "u"),
             (Keys.CAPS, "d"),
-            (EXIT_KEY, "d"),  # caps+backspace - exit app
+            (EXIT_KEY, "d"),  # caps+esc - exit app
         ],
         ["enter", "ctrl+z", "up,end,enter", "tab", "page up", "ctrl+f7,ctrl+f8"],
     ),
