@@ -15,6 +15,7 @@ from app.app import (
 )
 from app.app_state import NORMAL, INSERT, MOUSE
 from app.keys import Keys
+from app.version import VERSION
 from os_level.diagnostic_window import DiagnosticWindow
 from os_level.draw_on_screen import WinImage
 from os_level.mouse_window import MouseImage
@@ -71,6 +72,7 @@ def init_logging():
     logger.addHandler(file_handler)
     logger.setLevel(logging.INFO)
 
+    logger.critical(f"DoKey {VERSION}")
     logger.critical("init logging!")
 
 

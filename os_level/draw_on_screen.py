@@ -1,13 +1,13 @@
 import ctypes
 import logging
-import os
 import time
 import tkinter as tk
 from abc import ABC, abstractmethod
-from pathlib import Path
 
 import yaml
 
+from app.config import dokey_dir
+from app.version import VERSION
 from os_level.windows_api import get_active_process_name
 
 ctypes.windll.shcore.SetProcessDpiAwareness(2)  # windows 10
@@ -57,6 +57,15 @@ class WinImage:
         font = "consolas 10"
 
         canvas.create_text(width / 2, height / 2, fill="black", font=font, text=text)
+        # version in the corner, so it never shifts the centred help text
+        canvas.create_text(
+            width - 10,
+            height - 10,
+            anchor=tk.SE,
+            fill="gray40",
+            font="consolas 9",
+            text=f"DoKey {VERSION}",
+        )
         print("try draw", len(text))
         self.root.update()
 
@@ -72,7 +81,7 @@ class WinImage:
 
 
 def get_help_app(process_name):
-    path = Path(os.environ["HOMEPATH"]) / ".dokey" / "help.yaml"
+    path = dokey_dir() / "help.yaml"
     content = process_name
     with open(path, "r") as f:
         data: dict = yaml.safe_load(f)

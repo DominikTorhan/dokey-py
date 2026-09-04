@@ -2,7 +2,7 @@ import unittest
 from pathlib import Path
 import yaml
 from app.app_state import AppState
-from app.events import SendEvent, CMDEvent, WriteEvent
+from app.events import SendEvent, CMDEvent, WriteEvent, DoKeyEvent
 from app.key_processor import Event, KeyProcessor
 from app.config import Config
 from app.keys import Keys, string_to_multi_keys
@@ -101,6 +101,11 @@ class TestPlaylist(unittest.TestCase):
             if strs[4]:
                 send = string_to_multi_keys(strs[4])
             prevent_key_process = "PREV" in strs[5]
+            # optional 7th field: app-level command event (exit / clear_screen)
+            dokey_event_type = strs[6] if len(strs) > 6 else ""
+            if dokey_event_type:
+                self.assertIsInstance(event, DoKeyEvent)
+                self.assertEqual(dokey_event_type, event.event_type)
 
             self.assertEqual(mode, state.mode)
             self.assertEqual(first_step, state.first_step)
