@@ -3,7 +3,7 @@
 #   AppState: {state},{firstStep},{modificators}{"*" as prevent next ESC flag}
 # Output:{appState} {send} {preventKeyProcess}
 #     0,,c f down           1,,c* ? ?
-# Output: mode|firstStep|modificators|*|send|preventKeyProcess
+# Output: mode|firstStep|modificators|*|send|preventKeyProcess[|doKeyEventType]
 
 playlist:
   - {input: "0,, capital down", output: "0||s|||PREV"}
@@ -50,7 +50,7 @@ playlist:
   - {input: "1,,s a down", output: "1||s|*||PREV"} # do nothing, and prevent
   - {input: "1,,s z down", output: "1||s|*||PREV"}
   - {input: "1,,s x down", output: "1||s|*||PREV"}
-  - {input: "1,,s s down", output: "clear_screen"} # s is clear_screen_key
+  - {input: "1,,s s down", output: "1||s|||PREV|clear_screen"} # s is clear_screen_key
 
   # single step
   - {input: "1,, h down", output: "1||||left|PREV"}
