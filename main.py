@@ -3,9 +3,6 @@ from logging.handlers import TimedRotatingFileHandler
 from pathlib import Path
 import argparse
 
-import pystray
-from PIL import Image
-
 from app.app import (
     App,
     TrayAppInterface,
@@ -20,6 +17,7 @@ from os_level.diagnostic_window import DiagnosticWindow
 from os_level.draw_on_screen import WinImage
 from os_level.mouse_window import MouseImage
 from os_level.os_pynput import PynpytListener
+from os_level.tray import TrayIcon
 
 root = Path(__file__).parent
 TRAY_ICON_OFF = str(root / "assets" / "off.ico")
@@ -33,7 +31,7 @@ STARTING_MODE = NORMAL
 
 # TrayApp
 def start_tray_app():
-    def get_icon(mode: int, first_step: Keys = Keys.NONE):
+    def get_icon_path(mode: int, first_step: Keys = Keys.NONE) -> str:
         path = TRAY_ICON_OFF
         if mode == NORMAL:
             if first_step == Keys.NONE:
@@ -44,12 +42,12 @@ def start_tray_app():
             path = TRAY_ICON_INSERT
         if mode == MOUSE:
             path = TRAY_ICON_MOUSE
-        return Image.open(path)
+        return path
 
     def set_icon(mode, first_step):
-        icon.icon = get_icon(mode, first_step)
+        icon.set_icon(get_icon_path(mode, first_step))
 
-    icon = pystray.Icon("Dokey-py", icon=get_icon(STARTING_MODE))
+    icon = TrayIcon("Dokey-py", get_icon_path(STARTING_MODE))
     icon.run_detached()
 
     return set_icon, icon.stop

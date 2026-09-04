@@ -1,5 +1,2 @@
 pynput
-pyyaml
-pystray
 black
-psutil

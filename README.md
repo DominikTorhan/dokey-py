@@ -16,11 +16,14 @@ information.
 
 ## Installation
 
-1. Create a virtual environment.
-2. Install dependencies:
-   ```bash
-   pip install -r pip_dependencies.txt
-   ```
+DoKey needs only `pynput` at runtime — the tray icon, YAML reading and Windows
+process lookups are implemented directly on `ctypes`:
+
+```bash
+pip install -r pip_dependencies.txt
+```
+
+`black` in that file is a dev-only formatter and is not needed to run DoKey.
 
 ## Running
 

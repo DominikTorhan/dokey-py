@@ -30,6 +30,12 @@ reversible changes. Do not restructure the app "for cleanliness" unless asked.**
 - Deliberately **no build system, no packaging, no CI, no linter config**. Deps are
   a flat `pip_dependencies.txt`. Don't introduce `pyproject.toml`, `requirements.txt`,
   tox, poetry, GitHub Actions, or type-checking config unless explicitly asked.
+- **The project is moving towards zero runtime dependencies**, implementing what it
+  needs directly on `ctypes` so DoKey runs on a stock Python install with no venv
+  and no `pip`. Already owned: the tray icon (`os_level/tray.py`, was pystray +
+  Pillow), the process-name lookup (`windows_api.py`, was psutil), and YAML reading
+  (`app/yaml_lite.py`, was PyYAML). Only `pynput` remains at runtime; `black` is a
+  dev-only formatter. Don't add a new third-party dependency without asking.
 - Code is formatted with **black** (it's in `pip_dependencies.txt`). Match that style.
 
 ## Layout
@@ -45,14 +51,17 @@ app/                          pure logic, no Windows API — this is the testabl
   keys.py                     Keys enum (values are Windows VK codes), name↔key map, FIRST_STEPS
   events.py                   Event / SendEvent / WriteEvent / CMDEvent / DoKeyEvent / MouseEvent
   modifs.py                   Modifs: ctrl/shift/alt/win flags
+  version.py                  VERSION - single source of truth
+  yaml_lite.py                minimal YAML reader for the config subset
   config.yaml                 the actual keymap
   mouse_config.yaml           mouse grid: key -> [x%, y%] of the active window
 os_level/                     Windows-specific, not importable off Windows
   os_pynput.py                PynpytListener: global hook, suppression, key sending, mouse click
-  windows_api.py              active window/process via user32 + dwmapi + psutil
+  windows_api.py              active window/process via user32 + dwmapi + kernel32 (ctypes only)
   draw_on_screen.py           WinImage: Tk help overlay (per active process)
   mouse_window.py             MouseImage: Tk mouse-grid overlay + coordinate math
   diagnostic_window.py        DiagnosticWindow: Tk state overlay
+  tray.py                     TrayIcon: Shell_NotifyIcon tray icon + message pump
 assets/                       tray icons, one per mode (+ normal_first_step)
 tests/                        unittest; test_playlist.yaml is a data-driven state-machine table
 ```
@@ -190,13 +199,26 @@ first line of every run, so a `logs/dokey.log` always identifies the build that
 produced it:
 
 ```
-DoKey 1.0.1
+DoKey 1.1.0
 init logging!
 ```
 
 Releases are marked by tagging the merge commit on `main` with a matching `v`
-prefix — bump `VERSION`, merge, then `git tag v1.0.1 && git push origin v1.0.1`.
+prefix — bump `VERSION`, merge, then tag the merge commit `v<VERSION>`.
 Keep the tag and `VERSION` in step.
+
+## yaml_lite
+
+`app/yaml_lite.py` reads the YAML subset the configs actually use: block mappings,
+block sequences, flow sequences and mappings, quoted scalars, comments, and bare
+integers. It deliberately does **not** support anchors, multi-line scalars, tags,
+bool/float/null coercion, or a block mapping opened on a `-` line — those raise
+`ValueError` rather than quietly producing a different structure.
+
+`tests/test_yaml_lite.py` pins it against PyYAML on every YAML file in the repo,
+plus the `~/.dokey` shapes that aren't in the repo. Those comparison tests skip
+themselves when PyYAML isn't installed, so they keep working either way. **If you
+extend the config format, add a case there first.**
 
 ## Working agreements
 

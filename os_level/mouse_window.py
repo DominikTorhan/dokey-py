@@ -5,8 +5,6 @@ import time
 import tkinter as tk
 from pathlib import Path
 
-import yaml
-
 from app.mouse_config import MouseConfig
 from os_level.windows_api import get_active_window_rect
 

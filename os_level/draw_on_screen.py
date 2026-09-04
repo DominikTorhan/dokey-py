@@ -4,8 +4,7 @@ import time
 import tkinter as tk
 from abc import ABC, abstractmethod
 
-import yaml
-
+from app import yaml_lite
 from app.config import dokey_dir
 from app.version import VERSION
 from os_level.windows_api import get_active_process_name
@@ -84,7 +83,7 @@ def get_help_app(process_name):
     path = dokey_dir() / "help.yaml"
     content = process_name
     with open(path, "r") as f:
-        data: dict = yaml.safe_load(f)
+        data: dict = yaml_lite.safe_load(f)
     for key in data:
         if key not in process_name.lower():
             continue

@@ -1,6 +1,6 @@
 import unittest
 from pathlib import Path
-import yaml
+from app import yaml_lite
 from app.app_state import AppState
 from app.events import SendEvent, CMDEvent, WriteEvent, DoKeyEvent
 from app.key_processor import Event, KeyProcessor
@@ -19,7 +19,7 @@ class TestPlaylist(unittest.TestCase):
     def setUp(self) -> None:
 
         with open(PLAYLIST_PATH, "r") as f:
-            playlist_data: dict = yaml.safe_load(f)
+            playlist_data: dict = yaml_lite.safe_load(f)
 
         self.playlist_data = playlist_data["playlist"]
 
