@@ -1,8 +1,9 @@
 """Single source of truth for the DoKey version.
 
-Bump this, then tag the merge commit on main:
+Logged as the first line of every run and shown in the help overlay.
 
-    git tag v1.0.1 && git push origin v1.0.1
+To release: bump this, merge to main, then tag the merge commit with a matching
+"v" prefix, e.g. `git tag v1.1.0 && git push origin v1.1.0`.
 """
 
-VERSION = "1.0.1"
+VERSION = "1.1.0"

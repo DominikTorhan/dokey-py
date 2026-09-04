@@ -199,12 +199,12 @@ first line of every run, so a `logs/dokey.log` always identifies the build that
 produced it:
 
 ```
-DoKey 1.0.1
+DoKey 1.1.0
 init logging!
 ```
 
 Releases are marked by tagging the merge commit on `main` with a matching `v`
-prefix — bump `VERSION`, merge, then `git tag v1.0.1 && git push origin v1.0.1`.
+prefix — bump `VERSION`, merge, then tag the merge commit `v<VERSION>`.
 Keep the tag and `VERSION` in step.
 
 ## yaml_lite
