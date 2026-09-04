@@ -4,7 +4,7 @@ from collections import defaultdict
 from pathlib import Path
 from typing import Dict, List, Union, Optional
 
-import yaml
+from app import yaml_lite
 
 from app.events import SendEvent, CMDEvent, WriteEvent, Event, EventLike
 from app.keys import Keys, string_to_multi_keys
@@ -41,7 +41,7 @@ class Config:
     def from_file(cls, path: Union[str, Path] = "config.yaml"):
         config = cls()
         with open(path, "r") as f:
-            config_data: dict = yaml.safe_load(f)
+            config_data: dict = yaml_lite.safe_load(f)
 
         config.special_key = Keys.from_string(config_data.pop("special_key"))
         config.change_mode_key = Keys.from_string(config_data.pop("change_mode_key"))
@@ -69,7 +69,7 @@ class Config:
         if not os.path.exists(user_config):
             return
         with open(user_config, "r") as f:
-            config_data: dict = yaml.safe_load(f)
+            config_data: dict = yaml_lite.safe_load(f)
         for fs in config_data:
             events = self._convert_dict_events(config_data[fs])
             first_step = Keys.from_string(fs)

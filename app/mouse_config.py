@@ -3,7 +3,7 @@ from collections import defaultdict
 from pathlib import Path
 from typing import Union
 
-import yaml
+from app import yaml_lite
 
 logger = logging.getLogger(__name__)
 
@@ -16,7 +16,7 @@ class MouseConfig:
     def from_file(cls, path: Union[str, Path] = "mouse_config.yaml"):
         mouse_config = cls()
         with open(path, "r") as f:
-            config_data: dict = yaml.safe_load(f)
+            config_data: dict = yaml_lite.safe_load(f)
 
         mouse_config.positions = config_data
         return mouse_config
