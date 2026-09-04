@@ -10,10 +10,11 @@ behaviour: a *special key* (Caps Lock) plus a Normal/Insert mode pair, so common
 editing and navigation actions live on the home row instead of on arrows and
 function keys.
 
-It runs as a tray application (`main.py`), listens to the global keyboard hook via
-`pynput`, decides what to do in pure-Python logic, and either swallows the
-keystroke, sends different keystrokes, types text, clicks the mouse, or runs a
-shell command.
+It runs as a tray application (`main.py`), installs a low-level Windows keyboard
+hook, decides what to do in pure-Python logic, and either swallows the keystroke,
+sends different keystrokes, types text, clicks the mouse, or runs a shell command.
+It has **no runtime dependencies** — everything below `app/` is stdlib plus
+`ctypes`.
 
 **This is a working tool the owner depends on daily. Prefer small, surgical,
 reversible changes. Do not restructure the app "for cleanliness" unless asked.**
@@ -22,7 +23,7 @@ reversible changes. Do not restructure the app "for cleanliness" unless asked.**
 
 - **Windows only at runtime.** `os_level/` uses `ctypes.WinDLL("User32.dll")`,
   `dwmapi`, `ctypes.windll.shcore.SetProcessDpiAwareness`, the `win32_event_filter`
-  hook of `pynput`, and Tk overlay windows. Importing anything from `os_level/`
+  `SetWindowsHookExW`/`SendInput`, and Tk overlay windows. Importing anything from `os_level/`
   on Linux/macOS fails immediately.
 - **Development often happens from WSL/Linux.** Only `app/` and `tests/` are
   importable there. Keep it that way: **never import `os_level` from `app/`.**
@@ -34,8 +35,10 @@ reversible changes. Do not restructure the app "for cleanliness" unless asked.**
   needs directly on `ctypes` so DoKey runs on a stock Python install with no venv
   and no `pip`. Already owned: the tray icon (`os_level/tray.py`, was pystray +
   Pillow), the process-name lookup (`windows_api.py`, was psutil), and YAML reading
-  (`app/yaml_lite.py`, was PyYAML). Only `pynput` remains at runtime; `black` is a
-  dev-only formatter. Don't add a new third-party dependency without asking.
+  (`app/yaml_lite.py`, was PyYAML) and the keyboard hook itself
+  (`os_level/win_keyboard.py`, was pynput). **There are now no runtime
+  dependencies at all**; `black` is a dev-only formatter. Don't add a third-party
+  dependency without asking.
 - Code is formatted with **black** (it's in `pip_dependencies.txt`). Match that style.
 
 ## Layout
@@ -56,7 +59,7 @@ app/                          pure logic, no Windows API — this is the testabl
   config.yaml                 the actual keymap
   mouse_config.yaml           mouse grid: key -> [x%, y%] of the active window
 os_level/                     Windows-specific, not importable off Windows
-  os_pynput.py                PynpytListener: global hook, suppression, key sending, mouse click
+  win_keyboard.py             WindowsListener: WH_KEYBOARD_LL hook, SendInput, mouse click
   windows_api.py              active window/process via user32 + dwmapi + kernel32 (ctypes only)
   draw_on_screen.py           WinImage: Tk help overlay (per active process)
   mouse_window.py             MouseImage: Tk mouse-grid overlay + coordinate math
@@ -68,25 +71,39 @@ tests/                        unittest; test_playlist.yaml is a data-driven stat
 
 ## How a keystroke flows
 
-1. `PynpytListener.win32_event_filter(msg, data)` fires **before** press/release
-   handlers. `msg`: 256/260 = key down, 257/261 = key up.
-2. It short-circuits in two cases: while DoKey is itself sending keys
-   (`self.is_sending`), and when **Caps Lock is toggled on**
+1. `WindowsListener._on_key` is the `WH_KEYBOARD_LL` callback. `wParam` is
+   `WM_KEYDOWN`/`WM_SYSKEYDOWN` (256/260) or `WM_KEYUP`/`WM_SYSKEYUP` (257/261),
+   `lParam` points at a `KBDLLHOOKSTRUCT`.
+2. It short-circuits in two cases: keystrokes DoKey injected itself
+   (`dwExtraInfo == DOKEY_EXTRA_INFO`), and when **Caps Lock is toggled on**
    (`is_capslock_on()` → everything passes through untouched; this is the de-facto
    "temporarily disable DoKey" escape hatch).
 3. It reads real OS modifier state via `GetAsyncKeyState` (`get_modif_state()`),
    builds an `OSEvent`, and calls `App.handle_keyboard_event`.
 4. `App` delegates to `KeyProcessor.process()`, which **mutates `AppState`** and
    returns an event object.
-5. `App` then performs side effects: tray icon, help/mouse/diagnostic overlays,
-   and `os.popen(cmd)` for `CMDEvent`.
-6. The returned event goes back to the listener, which sends keys / types text /
-   clicks, and decides suppression.
+5. `App` logs, then **queues** the slow side effects (tray icon, overlays,
+   `os.popen(cmd)`) for its worker thread, and returns the event immediately.
+6. Back in the callback, `_perform()` does the fast part — `SendInput` for keys
+   and text, the mouse click — and reports whether the key is swallowed.
 
-**Suppression mechanism:** returning `False` from `win32_event_filter` *plus*
-setting `self.listener._suppress = True` swallows the original key. `_suppress` is
-a **private pynput attribute** — this is intentional and load-bearing; don't
-"clean it up".
+**Suppression mechanism:** returning `1` from the hook callback swallows the key;
+anything else falls through to `CallNextHookEx`. This is the documented mechanism
+— there is no private-attribute hack any more.
+
+**Recursion:** every input DoKey injects carries `DOKEY_EXTRA_INFO` in
+`dwExtraInfo`, and the callback drops those on sight. That is what stops sent keys
+from being re-processed; it replaces an older `is_sending` boolean, which could
+not tell our own echo from a real key pressed at the same moment.
+
+**The callback must stay fast.** Windows silently unhooks a low-level hook whose
+callback overruns `LowLevelHooksTimeout` (300 ms by default,
+`HKCU\Control Panel\Desktop`) — DoKey keeps running but stops remapping, with
+nothing in the log. That is why `App._defer_side_effects` exists: creating a Tk
+overlay or spawning a command is far too slow to do inline. **Never add slow work
+to `handle_keyboard_event` or to `_perform`** — put it on the queue. The decision
+itself must stay synchronous, because the return value determines suppression.
+`tests/test_side_effects.py` pins both halves of that.
 
 ## KeyProcessor: order matters
 

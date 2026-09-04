@@ -1,8 +1,8 @@
 # DoKey
 
 DoKey is a keyboard mapping utility for Windows written in Python. It captures
-keyboard events with `pynput` and translates them into actions defined in YAML
-configuration files. A system tray icon reflects the current mode and optional
+keyboard events with a low-level Windows hook and translates them into actions
+defined in YAML configuration files. A system tray icon reflects the current mode and optional
 Tkinter windows provide help overlays, mouse navigation graphics and diagnostic
 information.
 
@@ -16,14 +16,12 @@ information.
 
 ## Installation
 
-DoKey needs only `pynput` at runtime — the tray icon, YAML reading and Windows
-process lookups are implemented directly on `ctypes`:
+DoKey has **no runtime dependencies**. With Python installed, just run it — the
+keyboard hook, tray icon, YAML reading and window lookups are all implemented
+directly on `ctypes` and the standard library.
 
-```bash
-pip install -r pip_dependencies.txt
-```
-
-`black` in that file is a dev-only formatter and is not needed to run DoKey.
+`pip_dependencies.txt` lists only `black`, the code formatter used for
+development.
 
 ## Running
 
