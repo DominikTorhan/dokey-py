@@ -2,7 +2,7 @@ import logging
 import os
 from collections import defaultdict
 from pathlib import Path
-from typing import Dict, List, Union, Optional
+from typing import Dict, Union, Optional
 
 from app import yaml_lite
 
@@ -87,22 +87,6 @@ class Config:
             result[Keys.from_string(key)] = string_to_multi_keys(d[key])
         return result
 
-    def try_get_two_key_send(self, firstStep: Keys, key: Keys) -> List[Keys]:
-        keys_two_step: dict = self.two_steps.get(firstStep, {})
-        keys = keys_two_step.get(key)
-        if keys:
-            return keys
-        logger.warning(f"MISSING TWO STEP KEY for {firstStep} and {key}")
-        return []
-
-    def try_get_two_key_command(self, firstStep: Keys, key: Keys) -> str:
-        keys_two_step: dict = self.two_steps_commands.get(firstStep, {})
-        cmd = keys_two_step.get(key)
-        if cmd:
-            return cmd
-        logger.warning(f"MISSING TWO STEP KEY for {firstStep} and {key}")
-        return ""
-
     def try_get_special_send(self, key: Keys) -> EventLike:
         send = self.special.get(key, [])
         if not send:
@@ -113,8 +97,6 @@ class Config:
     def _parse_config_value_to_event(val: str) -> EventLike:
         if val.startswith("__command__"):
             cmd = val.replace("__command__", "").lstrip("<").rstrip(">")
-            if "C:" in cmd:  # TODO: fix that
-                cmd = rf"{cmd}"
             return CMDEvent(cmd=cmd)
         if val.startswith("__write__"):
             text = val.replace("__write__", "").lstrip("<").rstrip(">")

@@ -92,16 +92,12 @@ if __name__ == "__main__":
     if not args.plain:
         win_image = WinImage()
         mouse_image = MouseImage(mouse_config_path)
-        diagnostics_window = DiagnosticWindow(None)
         help = HelpInterface(show=win_image.show, hide=win_image.clear)
         mouse = MouseInterface(
             show=mouse_image.show, hide=mouse_image.clear, clear=mouse_image.clear
         )
-        diagnostics = DiagnosticsInterface(
-            show=mouse_image.show, hide=mouse_image.clear
-        )
     else:
-        print("Start in plain mode!")
+        logger.info("Start in plain mode!")
         help = None
         mouse = None
     app = App(
@@ -112,6 +108,15 @@ if __name__ == "__main__":
         help_interface=help,
         mouse_interface=mouse,
     )
+    if not args.plain:
+        # Attached after App exists rather than passed in: DiagnosticWindow
+        # renders the live AppState, and App is the one that owns it. It used to
+        # be built with None and wired to the mouse window's callbacks, so the
+        # diagnostic key did nothing.
+        diagnostics_window = DiagnosticWindow(app.state)
+        app.diagnostics_interface = DiagnosticsInterface(
+            show=diagnostics_window.show, hide=diagnostics_window.clear
+        )
     try:
         app.main()
     except BaseException:

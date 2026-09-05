@@ -69,7 +69,6 @@ class WinImage:
             font="consolas 9",
             text=f"DoKey {VERSION}",
         )
-        print("try draw", len(text))
         self.root.update()
 
     def show(self):

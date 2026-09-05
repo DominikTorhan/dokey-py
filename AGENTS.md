@@ -83,7 +83,8 @@ tests/                        unittest; test_playlist.yaml is a data-driven stat
 4. `App` delegates to `KeyProcessor.process()`, which **mutates `AppState`** and
    returns an event object.
 5. `App` logs, then **queues** the slow side effects (tray icon, overlays,
-   `os.popen(cmd)`) for its worker thread, and returns the event immediately.
+   launching a `__command__`) for its worker thread, and returns the event
+   immediately.
 6. Back in the callback, `_perform()` does the fast part — `SendInput` for keys
    and text, the mouse click — and reports whether the key is swallowed.
 
@@ -142,11 +143,11 @@ Value syntax:
 
 - `ctrl+shift+v` — one chord
 - `up, end, enter` — a sequence of chords, sent in order
-- `__command__<some command line>` — runs via `os.popen`
+- `__command__<some command line>` — launched with `subprocess.Popen(shell=True)`
 - `__write__<text>` — types the text literally
 
-User overrides: `%HOMEPATH%\.dokey\user_config.yaml`, merged into two-step
-sections only (`Config.try_load_users_config`). `%HOMEPATH%\.dokey\help.yaml`
+User overrides: `~/.dokey/user_config.yaml`, merged into two-step
+sections only (`Config.try_load_users_config`). `~/.dokey/help.yaml`
 holds the per-application help text shown by the help overlay, keyed by a
 substring of the active process name.
 
@@ -155,25 +156,23 @@ substring of the active process name.
 - **Adding a new two-step first step needs two edits.** A new top-level section in
   `config.yaml` does nothing unless the key is also added to `FIRST_STEPS` in
   `app/keys.py`.
-- **`Keys.from_string()` returns `None` for an unknown name** (it does not raise —
-  there's a leftover `x = "xxx"` debug line there). A typo in `config.yaml` shows
-  up later as a confusing `None` key, not as a parse error.
-- **`user_config.yaml` can only extend first steps that already exist** in
-  `config.yaml`; `try_load_users_config` does `.get(first_step)` and then `.update()`
-  on the result, so a brand-new section raises `AttributeError` on startup.
-- `Config.try_get_two_key_send` / `try_get_two_key_command` are **dead code**
-  referencing attributes (`two_steps`, `two_steps_commands`) that no longer exist.
-- `CMDEvent` runs an arbitrary string from config through `os.popen` — the config
-  file is trusted input by design (there's a `TODO` marking it). Don't wire
-  untrusted input into that path.
-- `main.py` builds `DiagnosticWindow(None)` and never passes
-  `diagnostics_interface` to `App`, so the diagnostics overlay is effectively
-  disconnected; `DiagnosticsInterface` is also wired to the *mouse* image.
+- **`Keys.from_string()` returns `None` for an unknown name**; it does not raise.
+  A typo in `config.yaml` still produces a `None` key that can never match, so the
+  binding silently does nothing — but it is now logged at error level. `Keys.NONE`
+  would be worse: it would fold the typo into the "no first step" section.
+- `CMDEvent` runs a string from config through a shell. **The config file is
+  trusted input by design** — it is the owner's own keymap. Don't wire anything
+  untrusted into that path, and keep `dokey_dir()` anchored to `Path.home()`
+  rather than a bare env var.
 - Overlay windows create a **second `tk.Tk()` root** on each draw and use
   `overrideredirect` + `-topmost` + `-transparentcolor blue`. That's fragile but
   works; be careful when touching it.
-- The tray app uses `icon.run_detached()`; `main.py`'s bare `except:` around
-  `app.main()` is what stops it.
+- **Nothing outside a `__main__` block may `print()`.** Under `pythonw.exe`
+  `sys.stdout` is `None` and `print()` raises `AttributeError`; several of these
+  used to sit on the help-overlay draw path. Log instead.
+- The diagnostics overlay is attached **after** `App` is constructed
+  (`app.diagnostics_interface = ...`), because `DiagnosticWindow` renders the live
+  `AppState` and `App` owns it.
 
 ## Running
 
@@ -206,8 +205,10 @@ platform imports, so the state machine is testable off Windows. Keep it that way
 if a change to `app/` makes `python3 -m unittest` fail to *import* on Linux, the
 change is in the wrong layer.
 
-`Config.dokey_dir()` resolves the user-override directory as `%HOMEPATH%\.dokey`
-on Windows and `~/.dokey` elsewhere, which is what allows the above.
+`Config.dokey_dir()` resolves the user-override directory as `Path.home() /
+".dokey"`, which is what allows the above. Deliberately *not* `%HOMEPATH%`: that
+variable is drive-relative on Windows, so reading it directly would resolve
+against whatever drive is current and could load a different user config.
 
 ## Versioning
 
