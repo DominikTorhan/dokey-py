@@ -216,7 +216,7 @@ first line of every run, so a `logs/dokey.log` always identifies the build that
 produced it:
 
 ```
-DoKey 1.1.0
+DoKey 1.2.0
 init logging!
 ```
 
