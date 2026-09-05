@@ -3,7 +3,7 @@
 Logged as the first line of every run and shown in the help overlay.
 
 To release: bump this, merge to main, then tag the merge commit with a matching
-"v" prefix, e.g. `git tag v1.1.0 && git push origin v1.1.0`.
+"v" prefix, e.g. `git tag v1.2.0 && git push origin v1.2.0`.
 """
 
-VERSION = "1.1.0"
+VERSION = "1.2.0"

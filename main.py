@@ -16,7 +16,7 @@ from app.version import VERSION
 from os_level.diagnostic_window import DiagnosticWindow
 from os_level.draw_on_screen import WinImage
 from os_level.mouse_window import MouseImage
-from os_level.os_pynput import PynpytListener
+from os_level.win_keyboard import WindowsListener
 from os_level.tray import TrayIcon
 
 root = Path(__file__).parent
@@ -85,7 +85,7 @@ if __name__ == "__main__":
     config_path = str(root / "app" / "config.yaml")
     mouse_config_path = str(root / "app" / "mouse_config.yaml")
     set_icon, stop_app = start_tray_app()
-    listener = PynpytListener()
+    listener = WindowsListener()
     tray_app_interface = TrayAppInterface(set_icon=set_icon, stop=stop_app)
     if not args.plain:
         win_image = WinImage()

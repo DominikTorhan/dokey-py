@@ -1,15 +1,12 @@
-### Environment (venv)
-In Pycharm
-1. Add New Interpreter
-2. Go to Terminal in pycharm
-3. Make sure environment is active - name of environment in parentheses (e.g. venv)
-4. Execute: pip install -r pip_dependencies.txt
+### Environment
+DoKey has no dependencies — there is nothing to install and no venv to create.
+Any Python 3 install can run it straight from the repository root:
+```
+python main.py
+```
 
-In vscode (linux wsl)
-1. Install pip and venv
-2. Create new environment: virtualenv -p python3 venv
-3. Activate: source venv/bin/activate
-4. Install dependencies: pip install -r pip_dependencies.txt
+Only `app/` and `tests/` import on Linux/WSL; everything under `os_level/` is
+Windows-only.
 
 ### Tests
 Run tests with: 
