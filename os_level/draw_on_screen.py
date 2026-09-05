@@ -49,7 +49,11 @@ class WinImage:
         process_name = get_active_process_name()
         try:
             text = get_help_app(process_name)
-        except:
+        except OSError:
+            # no ~/.dokey/help.yaml: the app name on its own is the overlay
+            text = process_name
+        except Exception:
+            logger.exception("Could not read help.yaml")
             text = process_name
 
         # font = "Arial 10"
@@ -65,7 +69,6 @@ class WinImage:
             font="consolas 9",
             text=f"DoKey {VERSION}",
         )
-        print("try draw", len(text))
         self.root.update()
 
     def show(self):

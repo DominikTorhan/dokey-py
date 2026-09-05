@@ -50,6 +50,13 @@ KEY_UP_MESSAGES = (WM_KEYUP, WM_SYSKEYUP)
 
 VK_CAPITAL = 0x14
 
+# GetAsyncKeyState/GetKeyState return two independent bits in one SHORT, so the
+# result has to be masked rather than tested for truth: 0x8000 means the key is
+# physically down, 0x0001 means "pressed since the last call" on GetAsyncKeyState
+# and "toggled on" on GetKeyState.
+KEY_DOWN_BIT = 0x8000
+KEY_TOGGLED_BIT = 0x0001
+
 INPUT_MOUSE, INPUT_KEYBOARD = 0, 1
 KEYEVENTF_EXTENDEDKEY = 0x0001
 KEYEVENTF_KEYUP = 0x0002
@@ -168,14 +175,17 @@ kernel32.GetModuleHandleW.argtypes = [wintypes.LPCWSTR]
 
 
 def is_capslock_on() -> bool:
-    # kept as-is from the pynput implementation: caps lock toggled on is the
-    # "pass everything through" escape hatch
-    return True if user32.GetKeyState(VK_CAPITAL) else False
+    # caps lock toggled on is the "pass everything through" escape hatch, so
+    # this wants the toggle bit only. Plain truthiness would also accept the
+    # down bit, and caps lock is DoKey's special key - it is held constantly.
+    return bool(user32.GetKeyState(VK_CAPITAL) & KEY_TOGGLED_BIT)
 
 
 def get_modif_state() -> Modifs:
     def is_modif_active(keys: List[Keys]):
-        return any(user32.GetAsyncKeyState(key.value) for key in keys)
+        # the down bit only: without the mask a modifier merely tapped since the
+        # last call still reads as held, and DoKey takes the wrong branch
+        return any(user32.GetAsyncKeyState(key.value) & KEY_DOWN_BIT for key in keys)
 
     modifs = Modifs()
     modifs.control = is_modif_active(control_keys)

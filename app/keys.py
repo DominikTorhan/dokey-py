@@ -1,5 +1,8 @@
+import logging
 from typing import List
 from enum import Enum
+
+logger = logging.getLogger(__name__)
 
 
 class Keys(Enum):
@@ -118,8 +121,11 @@ class Keys(Enum):
         if not s:
             return Keys.NONE
         key = keyboard_to_dokey_map.get(s.strip())
-        if not key:
-            x = "xxx"
+        if key is None:
+            # None never matches a real key, so until now a typo just disabled
+            # the binding in silence. Keep returning it - Keys.NONE would fold
+            # the typo into the "no first step" section - but say so.
+            logger.error(f"Unknown key name in config: {s.strip()!r}")
         return key
 
     def to_string(self) -> str:
