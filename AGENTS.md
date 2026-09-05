@@ -28,18 +28,18 @@ reversible changes. Do not restructure the app "for cleanliness" unless asked.**
 - **Development often happens from WSL/Linux.** Only `app/` and `tests/` are
   importable there. Keep it that way: **never import `os_level` from `app/`.**
   The dependency direction is `main.py → os_level → app`, never the reverse.
-- Deliberately **no build system, no packaging, no CI, no linter config**. Deps are
-  a flat `pip_dependencies.txt`. Don't introduce `pyproject.toml`, `requirements.txt`,
+- Deliberately **no build system, no packaging, no CI, no linter config, and no
+  dependency file**. Don't introduce `pyproject.toml`, `requirements.txt`,
   tox, poetry, GitHub Actions, or type-checking config unless explicitly asked.
-- **The project is moving towards zero runtime dependencies**, implementing what it
-  needs directly on `ctypes` so DoKey runs on a stock Python install with no venv
-  and no `pip`. Already owned: the tray icon (`os_level/tray.py`, was pystray +
-  Pillow), the process-name lookup (`windows_api.py`, was psutil), and YAML reading
-  (`app/yaml_lite.py`, was PyYAML) and the keyboard hook itself
-  (`os_level/win_keyboard.py`, was pynput). **There are now no runtime
-  dependencies at all**; `black` is a dev-only formatter. Don't add a third-party
-  dependency without asking.
-- Code is formatted with **black** (it's in `pip_dependencies.txt`). Match that style.
+- **DoKey has zero dependencies**, runtime or dev, and that is a feature: it runs
+  on a stock Python install with no venv and no `pip`. Everything it needs is
+  implemented directly on `ctypes` and the standard library — the tray icon
+  (`os_level/tray.py`, was pystray + Pillow), the process-name lookup
+  (`windows_api.py`, was psutil), YAML reading (`app/yaml_lite.py`, was PyYAML)
+  and the keyboard hook itself (`os_level/win_keyboard.py`, was pynput).
+  **Don't add a dependency of any kind without asking.**
+- Code follows **black**'s style — 4-space indent, double quotes, 88-column lines,
+  magic trailing comma. black itself is not installed; match the style by hand.
 
 ## Layout
 

@@ -16,12 +16,18 @@ information.
 
 ## Installation
 
-DoKey has **no runtime dependencies**. With Python installed, just run it — the
-keyboard hook, tray icon, YAML reading and window lookups are all implemented
-directly on `ctypes` and the standard library.
+DoKey has **no dependencies at all** — nothing to install, no venv, no `pip`.
+With Python installed, just run it: the keyboard hook, tray icon, YAML reading
+and window lookups are all implemented directly on `ctypes` and the standard
+library.
 
-`pip_dependencies.txt` lists only `black`, the code formatter used for
-development.
+Any Python 3 works, including 3.14. The only standard-library piece that isn't
+always present is `tkinter`, used by the help, mouse and diagnostic overlays —
+the python.org Windows installer includes it by default. Check with:
+
+```bash
+python -c "import tkinter"
+```
 
 ## Running
 
