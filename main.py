@@ -19,6 +19,8 @@ from os_level.mouse_window import MouseImage
 from os_level.win_keyboard import WindowsListener
 from os_level.tray import TrayIcon
 
+logger = logging.getLogger(__name__)
+
 root = Path(__file__).parent
 TRAY_ICON_OFF = str(root / "assets" / "off.ico")
 TRAY_ICON_NORMAL = str(root / "assets" / "normal.ico")
@@ -112,5 +114,10 @@ if __name__ == "__main__":
     )
     try:
         app.main()
-    except:
+    except BaseException:
+        # a bare "except: stop_app()" swallowed the traceback, so every crash
+        # looked like a clean exit; teardown belongs in finally regardless
+        logger.exception("DoKey exited with an error")
+        raise
+    finally:
         stop_app()

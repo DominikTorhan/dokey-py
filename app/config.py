@@ -15,12 +15,14 @@ logger = logging.getLogger(__name__)
 def dokey_dir() -> Path:
     """Directory holding the user's overrides (~/.dokey).
 
-    HOMEPATH is Windows-only, so it is tried first to preserve existing
-    behaviour (some Windows setups redirect it), then we fall back to the
-    platform home. The fallback is what makes app/ importable off Windows.
+    Path.home() rather than HOMEPATH. On Windows HOMEPATH is drive-relative
+    ("\\Users\\dto"), so reading it directly resolves against whatever drive
+    happens to be current - launch DoKey from D: and it would silently load a
+    different user_config.yaml, one that can run commands. Path.home() already
+    consults USERPROFILE and falls back to HOMEDRIVE + HOMEPATH, which is the
+    redirect-aware lookup we wanted, with the drive attached.
     """
-    home = os.getenv("HOMEPATH") or Path.home()
-    return Path(home) / ".dokey"
+    return Path.home() / ".dokey"
 
 
 class Config:
@@ -73,9 +75,9 @@ class Config:
         for fs in config_data:
             events = self._convert_dict_events(config_data[fs])
             first_step = Keys.from_string(fs)
-            # if first_step not in self.two_step_events:
-            #     self.two_step_events[first_step] = {}
-            section = self.two_step_events.get(first_step)
+            # setdefault, not get: a first step the user introduces here has no
+            # section in config.yaml yet, and .get would hand back None
+            section = self.two_step_events.setdefault(first_step, {})
             section.update(events)
 
     @staticmethod

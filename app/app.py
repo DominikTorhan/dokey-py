@@ -1,6 +1,6 @@
 import logging
-import os
 import queue
+import subprocess
 import threading
 from abc import ABC, abstractmethod
 from typing import Callable
@@ -209,6 +209,28 @@ class App:
 
         # Execute custom command
         if cmd:
-            logger.info(f"EXEC CMD: {cmd}")
-            # TODO: this is potential security breach
-            os.popen(cmd)  # popen for proper thread/subprocess
+            self._run_command(cmd)
+
+    @staticmethod
+    def _run_command(cmd: str):
+        """Launch a config-defined command and forget about it.
+
+        The command is the owner's own config entry, so the shell is the point
+        rather than a risk. What was a risk is the pipe os.popen left behind:
+        nothing ever read or closed it, so every press leaked a descriptor and
+        any command that outproduced the pipe buffer blocked forever. Redirect
+        the three streams to DEVNULL and none of that can happen.
+        """
+        logger.info(f"EXEC CMD: {cmd}")
+        try:
+            subprocess.Popen(
+                cmd,
+                shell=True,
+                stdin=subprocess.DEVNULL,
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+                # no console window flashing up on Windows; 0 elsewhere
+                creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0),
+            )
+        except OSError:
+            logger.exception(f"Could not run command: {cmd}")
