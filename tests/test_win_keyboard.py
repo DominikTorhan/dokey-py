@@ -70,3 +70,56 @@ class TestWindowsKeyboard(unittest.TestCase):
             )
         self.assertEqual(result, 42)
         next_hook.assert_called_once()
+
+    def test_repeats_ignore_injected_events_and_reset_after_key_up(self):
+        keyboard = self.keyboard
+        listener = keyboard.WindowsListener()
+        listener.func = Mock(return_value=SendEvent([Keys.DOWN]))
+        physical = keyboard.KBDLLHOOKSTRUCT(vkCode=Keys.J.value)
+        injected = keyboard.KBDLLHOOKSTRUCT(
+            vkCode=Keys.J.value, dwExtraInfo=keyboard.DOKEY_EXTRA_INFO
+        )
+        with (
+            patch.object(keyboard, "is_capslock_on", return_value=False),
+            patch.object(keyboard, "get_modif_state"),
+            patch.object(listener, "_perform", return_value=True),
+        ):
+            for message, data in (
+                (keyboard.WM_KEYDOWN, physical),
+                (keyboard.WM_KEYUP, injected),
+                (keyboard.WM_KEYDOWN, physical),
+                (keyboard.WM_KEYUP, physical),
+                (keyboard.WM_KEYDOWN, physical),
+            ):
+                listener._on_key(keyboard.HC_ACTION, message, ctypes.addressof(data))
+        self.assertEqual(
+            [False, True, False, False],
+            [call.args[0].is_repeat for call in listener.func.call_args_list],
+        )
+
+    def test_unsupported_key_is_counted_but_diagnosed_only_once(self):
+        keyboard = self.keyboard
+        listener = keyboard.WindowsListener()
+        data = keyboard.KBDLLHOOKSTRUCT(vkCode=175)
+        with (
+            patch.object(keyboard, "is_capslock_on", return_value=False),
+            patch.object(keyboard.usage, "record") as usage_record,
+            self.assertLogs(keyboard.logger, level="INFO") as logs,
+        ):
+            for message in (keyboard.WM_KEYDOWN, keyboard.WM_KEYDOWN,
+                            keyboard.WM_KEYUP, keyboard.WM_KEYDOWN):
+                listener._on_key(keyboard.HC_ACTION, message, ctypes.addressof(data))
+        self.assertEqual(1, len(logs.output))
+        self.assertEqual(3, usage_record.call_count)
+        self.assertEqual(
+            [False, True, False],
+            [call.kwargs["repeat"] for call in usage_record.call_args_list],
+        )
+
+    def test_text_injection_does_not_log_its_contents(self):
+        with (
+            patch.object(self.keyboard, "_send"),
+            patch.object(self.keyboard.logger, "info") as info,
+        ):
+            self.keyboard.WindowsListener().write_text("private text")
+        info.assert_not_called()

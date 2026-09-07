@@ -122,6 +122,5 @@ class Config:
         keys_two_step: dict = self.two_step_events.get(first_step, {})
         event = keys_two_step.get(key)
         if not event:
-            logger.warning(f"MISSING TWO STEP KEY for {first_step} and {key}")
             return None
         return event

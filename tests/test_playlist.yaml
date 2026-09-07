@@ -75,6 +75,8 @@ playlist:
   - {input: "1,, f down", output: "1|f||||PREV"}
   - {input: "1,, q down", output: "1|q||||PREV"}
   # two step
+  - {input: "1,t,s e down", output: "1||s|*|esc|PREV", binding: special.e, action: keys}
+  - {input: "1,f, v down", output: "1|||||PREV", binding: two_step.f.v, action: missing_binding}
   - {input: "1,q, equal down", output: "1||||alt+shift+=|PREV"}
   - {input: "1,w, equal down", output: "1||||alt+=|PREV"}
   - {input: "1,e, equal down", output: "1||||ctrl+=|PREV"}
@@ -95,10 +97,10 @@ playlist:
   - {input: "2,, f up", output: "2|||||"}
   - {input: "2,, d1 down", output: "None"}
   # cmd test
-  - {input: "1,i, d1 down", output: "start chrome /new-tab"}
+  - {input: "1,i, d1 down", output: "start chrome /new-tab", binding: two_step.i.d1, action: command}
   # write test
-  - {input: "1,i, d2 down", output: "my_text"}
+  - {input: "1,i, d2 down", output: "my_text", binding: two_step.i.d2, action: text}
   # mouse test
   - {input: "3,, q down", output: "mouse:0.01,0.01"}
-  - {input: "3,, j down", output: "mouse:0.65,0.35"}
+  - {input: "3,, j down", output: "mouse:0.65,0.35", binding: mouse.j, action: mouse}
   - {input: "3,, enter down", output: "1|||||PREV"}

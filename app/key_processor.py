@@ -22,6 +22,15 @@ class KeyProcessor:
         self.config: Config = config
         self.mouse_config: MouseConfig = mouse_config
         self.state: AppState = state
+        self.binding_id = None
+        self.action = None
+
+    def _tag(self, event, binding_id, action):
+        """Describe this decision without modifying cached configuration events."""
+        if event is not None:
+            self.binding_id = binding_id
+            self.action = action
+        return event
 
     def process(
         self,
@@ -30,6 +39,8 @@ class KeyProcessor:
         modifs_os: Modifs = None,
     ) -> Optional[EventLike]:
         """Side effect: change of AppState!"""
+        self.binding_id = None
+        self.action = None
 
         # process special key (usually caps lock)
         if key == self.config.special_key:
@@ -93,17 +104,17 @@ class KeyProcessor:
         if key == self.config.off_mode_key:
             self.state.mode = OFF
             self.state.prevent_prev_mode_on_special_up = True
-            return Event(True)
+            return self._tag(Event(True), "control.off_mode", "mode")
 
         if key == self.config.change_mode_key:
             self.state.mode = get_next_mode(self.state.mode)
             self.state.prevent_prev_mode_on_special_up = True
-            return Event(True)
+            return self._tag(Event(True), "control.change_mode", "mode")
 
         if key == self.config.mouse_mode_key:
             self.state.mode = MOUSE
             self.state.prevent_prev_mode_on_special_up = True
-            return Event(True)
+            return self._tag(Event(True), "control.mouse_mode", "mode")
 
         return None
 
@@ -129,7 +140,7 @@ class KeyProcessor:
 
         if self.state.is_special_down and not is_key_up:
             self.state.is_help_down = True
-            return Event(True)
+            return self._tag(Event(True), "control.help", "help")
 
         if not self.state.is_help_down:
             return None
@@ -156,7 +167,7 @@ class KeyProcessor:
 
         new_diagnostic_active = not self.state.diagnostic_active
         self.state.diagnostic_active = new_diagnostic_active
-        return Event(True)
+        return self._tag(Event(True), "control.diagnostics", "diagnostics")
 
     def _try_process_single_step(self, key: Keys) -> Optional[Event]:
         if self.state.is_special_down or self.state.modifs.win:
@@ -168,9 +179,13 @@ class KeyProcessor:
 
         if key.is_first_step():
             self.state.first_step = key
-            return Event(True)
+            return self._tag(Event(True), f"prefix.{key.name.lower()}", "prefix")
 
-        return self.config.get_single_step_send_event(key)
+        return self._tag(
+            self.config.get_single_step_send_event(key),
+            f"common.{key.name.lower()}",
+            "keys",
+        )
 
     def _try_process_two_step(self, key: Keys) -> Optional[Any]:
         if self.state.mode != NORMAL:
@@ -185,11 +200,17 @@ class KeyProcessor:
         self.state.first_step = Keys.NONE
 
         event = self.config.get_two_step_event(first_step, key)
+        binding = f"two_step.{first_step.name.lower()}.{key.name.lower()}"
         if event:
-            return event
+            action = {
+                "SendEvent": "keys",
+                "CMDEvent": "command",
+                "WriteEvent": "text",
+            }[type(event).__name__]
+            return self._tag(event, binding, action)
 
         # prevent
-        return Event(True)
+        return self._tag(Event(True), binding, "missing_binding")
 
     def _process_normal_and_insert_with_special(self, key: Keys) -> Optional[SendEvent]:
         # TODO in normal mode prevent everything???
@@ -200,7 +221,11 @@ class KeyProcessor:
             return None
         self.state.first_step = Keys.NONE
         self.state.prevent_prev_mode_on_special_up = True
-        return event
+        return self._tag(
+            event,
+            f"special.{key.name.lower()}",
+            "keys" if isinstance(event, SendEvent) else "unmapped_special",
+        )
 
     def _get_next_modifs(self, key: Keys, is_key_up: bool) -> Modifs:
         down = not is_key_up
@@ -229,9 +254,11 @@ class KeyProcessor:
         if not self.state.is_special_down:
             return None
         if key == self.config.exit_key:  # TODO command to config
-            return DoKeyEvent("exit")
+            return self._tag(DoKeyEvent("exit"), "control.exit", "exit")
         if key == self.config.clear_screen_key:
-            return DoKeyEvent("clear_screen")
+            return self._tag(
+                DoKeyEvent("clear_screen"), "control.clear_screen", "clear_screen"
+            )
         return None
 
     def _try_update_modifs_by_os(self, modifs_os: Modifs):
@@ -259,5 +286,9 @@ class KeyProcessor:
             if Keys.from_string(mkey) == key:
                 pos = self.mouse_config.positions[mkey]
                 # percent to ratio
-                return MouseEvent(rx=pos[0] / 100, ry=pos[1] / 100)
-        return Event(True)
+                return self._tag(
+                    MouseEvent(rx=pos[0] / 100, ry=pos[1] / 100),
+                    f"mouse.{key.name.lower()}",
+                    "mouse",
+                )
+        return self._tag(Event(True), f"mouse.{key.name.lower()}", "mouse_cancel")

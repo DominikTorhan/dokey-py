@@ -15,6 +15,7 @@ from app.app import (
 from app.app_state import NORMAL, INSERT, MOUSE
 from app.keys import Keys
 from app.version import VERSION
+from app.usage import DiagnosticFilter, UsageHandler
 
 logger = logging.getLogger(__name__)
 
@@ -59,17 +60,34 @@ def init_logging():
     # add console handler
     console_handler = logging.StreamHandler()
     console_handler.setLevel(logging.INFO)
+    console_handler.addFilter(DiagnosticFilter())
 
     log_dir_path = root / "logs"
     log_dir_path.mkdir(parents=True, exist_ok=True)
     filepath = log_dir_path / "dokey.log"
     file_handler = TimedRotatingFileHandler(
-        filename=filepath, when="D", backupCount=7, delay=True
+        filename=filepath,
+        when="midnight",
+        backupCount=7,
+        delay=True,
+        encoding="utf-8",
     )
+    file_handler.addFilter(DiagnosticFilter())
+    file_handler.setFormatter(
+        logging.Formatter(
+            "%(asctime)s %(levelname)s session=%(session_id)s %(name)s: %(message)s",
+            datefmt="%Y-%m-%dT%H:%M:%S%z",
+        )
+    )
+    usage_handler = UsageHandler(log_dir_path)
 
     log_queue = queue.SimpleQueue()
     listener = QueueListener(
-        log_queue, console_handler, file_handler, respect_handler_level=True
+        log_queue,
+        console_handler,
+        file_handler,
+        usage_handler,
+        respect_handler_level=True,
     )
     logger.addHandler(QueueHandler(log_queue))
     logger.setLevel(logging.INFO)

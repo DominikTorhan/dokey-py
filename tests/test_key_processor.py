@@ -69,6 +69,10 @@ class TestPlaylist(unittest.TestCase):
 
             # main call
             event = processor.process(key=key, is_key_up=is_up)
+            if "binding" in run:
+                self.assertEqual(run["binding"], processor.binding_id)
+            if "action" in run:
+                self.assertEqual(run["action"], processor.action)
 
             if not event:
                 self.assertEqual(expected, "None")

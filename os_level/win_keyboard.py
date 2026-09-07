@@ -32,6 +32,7 @@ from app.events import (
 )
 from app.keys import Keys, shift_keys, control_keys, alt_keys, win_keys
 from app.modifs import Modifs
+from app import usage
 from os_level.windows_api import get_absolute_position_in_active_window
 
 logger = logging.getLogger(__name__)
@@ -244,6 +245,8 @@ class WindowsListener(ListenerABC):
     def __init__(self):
         self.func = None
         self._hook = None
+        self._pressed_keys = set()
+        self._unknown_keys = set()
         # keep a reference: if the HOOKPROC is collected Windows calls freed memory
         self._proc = HOOKPROC(self._on_key)
 
@@ -279,18 +282,31 @@ class WindowsListener(ListenerABC):
         if data.dwExtraInfo == DOKEY_EXTRA_INFO:
             return user32.CallNextHookEx(None, code, wparam, lparam)
         if is_capslock_on():
+            self._pressed_keys.clear()
             return user32.CallNextHookEx(None, code, wparam, lparam)
+
+        is_key_up = wparam in KEY_UP_MESSAGES
+        is_repeat = not is_key_up and data.vkCode in self._pressed_keys
+        if is_key_up:
+            self._pressed_keys.discard(data.vkCode)
+        else:
+            self._pressed_keys.add(data.vkCode)
 
         try:
             key = Keys(data.vkCode)
         except ValueError:
-            logger.critical(f"Missing VK {data.vkCode} in Keys!")
+            if not is_key_up:
+                usage.record("unsupported_key", vk=data.vkCode, repeat=is_repeat)
+                if data.vkCode not in self._unknown_keys:
+                    self._unknown_keys.add(data.vkCode)
+                    logger.info("Passing through unsupported VK %s", data.vkCode)
             return user32.CallNextHookEx(None, code, wparam, lparam)
 
         try:
             os_event = OSEvent()
             os_event.key = key
-            os_event.is_key_up = wparam in KEY_UP_MESSAGES
+            os_event.is_key_up = is_key_up
+            os_event.is_repeat = is_repeat
             os_event.modifs_os = get_modif_state()
             event: EventLike = self.func(os_event)
             if self._perform(event):
@@ -337,7 +353,6 @@ class WindowsListener(ListenerABC):
             modifs = []
 
     def write_text(self, text: str):
-        logger.info(f"WRITE_EVENT: {text}")
         items = []
         for char in text:
             items.append(_char_input(char, False))
