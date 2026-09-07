@@ -7,6 +7,7 @@ clear_screen_key: s
 exit_key: esc # ESC
 help_key: slash
 diagnostic_key: backslash
+keyboard_key: apostrophe # special + ' opens the keyboard overlay, ESC closes it
 
 special: # tigger with special key (usually caps lock). Used in 1 (normal) and 2 (insert) mode
   # q offmode

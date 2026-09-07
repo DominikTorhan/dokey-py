@@ -35,6 +35,7 @@ class Config:
         self.clear_screen_key = Keys.NONE
         self.help_key = Keys.NONE
         self.diagnostic_key = Keys.NONE
+        self.keyboard_key = Keys.NONE
         self.special = {}
         self.common = {}
         self.two_step_events = defaultdict(dict)
@@ -53,6 +54,12 @@ class Config:
         config.clear_screen_key = Keys.from_string(config_data.pop("clear_screen_key"))
         config.help_key = Keys.from_string(config_data.pop("help_key"))
         config.diagnostic_key = Keys.from_string(config_data.pop("diagnostic_key"))
+        # Defaulted rather than required: a config written before the keyboard
+        # overlay existed must still load, and an unpopped top-level key would
+        # otherwise be read as a two-step first step named "keyboard_key".
+        config.keyboard_key = Keys.from_string(
+            config_data.pop("keyboard_key", "apostrophe")
+        )
 
         config.special = config.convert_dict(config_data.pop("special"))
         config.common = config.convert_dict(config_data.pop("common"))

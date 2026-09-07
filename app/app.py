@@ -9,6 +9,7 @@ from app.app_state import AppState, NORMAL, MOUSE
 from app.config import Config
 from app.events import Event, CMDEvent, DoKeyEvent, EventLike
 from app.key_processor import KeyProcessor
+from app.keyboard_layout import TABS
 from app.keys import Keys
 from app.modifs import Modifs
 from app.mouse_config import MouseConfig
@@ -42,6 +43,12 @@ class DiagnosticsInterface:
         self.hide = hide
 
 
+class KeyboardInterface:
+    def __init__(self, show, hide):
+        self.show = show
+        self.hide = hide
+
+
 class OSEvent:
     def __init__(self):
         self.key: Keys = Keys.NONE
@@ -67,6 +74,7 @@ class App:
         help_interface: HelpInterface = None,
         mouse_interface: MouseInterface = None,
         diagnostics_interface: DiagnosticsInterface = None,
+        keyboard_interface: KeyboardInterface = None,
     ):
         self.config: Config = Config.from_file(config_path)
         self.mouse_config: MouseConfig = MouseConfig.from_file(mouse_config_path)
@@ -75,6 +83,7 @@ class App:
         self.help_interface: HelpInterface = help_interface
         self.mouse_interface = mouse_interface
         self.diagnostics_interface = diagnostics_interface
+        self.keyboard_interface = keyboard_interface
         self.state = AppState()
         self.state.mode = NORMAL
         self.processor: KeyProcessor = KeyProcessor(
@@ -83,7 +92,12 @@ class App:
         # Slow side effects run here instead of on the keyboard hook thread.
         self.side_effects: queue.Queue = queue.Queue()
         self.worker: threading.Thread = None
-        self._visible_overlays = {"help": False, "mouse": False, "diagnostics": False}
+        self._visible_overlays = {
+            "help": False,
+            "mouse": False,
+            "diagnostics": False,
+            "keyboard": False,
+        }
 
     def main(self):
 
@@ -98,6 +112,7 @@ class App:
                 "help": self.help_interface is not None,
                 "mouse_overlay": self.mouse_interface is not None,
                 "diagnostics": self.diagnostics_interface is not None,
+                "keyboard": self.keyboard_interface is not None,
             },
         )
         self.worker = threading.Thread(
@@ -175,6 +190,8 @@ class App:
         first_step = self.state.first_step
         is_help_down = self.state.is_help_down
         diagnostic_active = self.state.diagnostic_active
+        keyboard_active = self.state.keyboard_active
+        keyboard_tab = self.state.keyboard_tab
         cmd = event.cmd if isinstance(event, CMDEvent) else None
         binding = self.processor.binding_id
         clear_screen = (
@@ -187,6 +204,7 @@ class App:
                 self.help_interface,
                 self.mouse_interface,
                 self.diagnostics_interface,
+                self.keyboard_interface,
             ]
         )
         if not has_ui and not cmd:
@@ -201,6 +219,8 @@ class App:
                 cmd,
                 clear_screen,
                 binding,
+                keyboard_active,
+                keyboard_tab,
             )
         )
 
@@ -213,6 +233,8 @@ class App:
         cmd,
         clear_screen,
         binding=None,
+        keyboard_active=False,
+        keyboard_tab=0,
     ):
         if self.tray_app_interface:
             self.tray_app_interface.set_icon(mode, first_step)
@@ -237,6 +259,13 @@ class App:
             else:
                 self.diagnostics_interface.hide()
             self._record_overlay("diagnostics", diagnostic_active)
+
+        if self.keyboard_interface:
+            if keyboard_active:
+                self.keyboard_interface.show(TABS[keyboard_tab % len(TABS)])
+            else:
+                self.keyboard_interface.hide()
+            self._record_overlay("keyboard", keyboard_active)
 
         if clear_screen and self.mouse_interface:
             self.mouse_interface.clear()

@@ -11,6 +11,8 @@ information.
 - **Multiple modes** – Normal, Insert, Mouse and Off.
 - **Single and two step mappings** described in `config.yaml`.
 - **Mouse navigation** using positions from `mouse_config.yaml`.
+- **Keyboard cheat sheet** – Caps Lock + `'` draws the whole keyboard with
+  every binding on it, in two tabs; arrows switch tabs, ESC closes it.
 - **Tray integration** with icons showing the active mode.
 - **Logging** to `logs/dokey.log` via `TimedRotatingFileHandler`.
 
@@ -39,6 +41,35 @@ python main.py
 
 Use `--plain` to run without GUI overlays. The tray icon will appear and you can
 switch modes using the special key (Caps Lock by default).
+
+### Keyboard cheat sheet
+
+Caps Lock + `'` draws the alphanumeric block of the keyboard with what every key
+does written on it. There are two tabs, and **← / →** move between them:
+
+- **special** — what each key does with Caps Lock held: the `special:` section
+  plus the control keys, so `Caps+F` reads *mode / next*, `Caps+U` *mouse /
+  mode*, `Caps+/` *help*. Control keys win over `special:` entries here for the
+  same reason they do at runtime — `KeyProcessor` reaches them first.
+- **common** — what each key does pressed on its own in Normal mode: the
+  `common:` section, plus every two-step first step marked `▸ N` with how many
+  bindings hang off it and whether they are keys, commands or text. A prefix
+  with nothing behind it shows `▸ 0 empty`.
+
+Chords are shown compactly, so `ctrl+shift+tab` reads as `C-S-tab`. The sheet
+stays up until you press ESC; while it is open the arrows belong to it, but
+every other key still works normally. `Caps+ESC` still exits DoKey. Anything
+that has no cap on this board — Escape, since the function row is not drawn —
+is listed underneath. Rebind the opening key with `keyboard_key` in
+`config.yaml`.
+
+To see it without running DoKey — including from WSL, which is the only way to
+iterate on it off Windows:
+
+```bash
+python tools/keyboard_preview.py              # arrows switch tabs, ESC closes
+python tools/keyboard_preview.py --tab common
+```
 
 ## Configuration
 

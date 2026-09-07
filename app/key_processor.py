@@ -4,6 +4,7 @@ from typing import Optional, Any
 from app.app_state import AppState, OFF, NORMAL, INSERT, MOUSE
 from app.config import Config
 from app.events import Event, SendEvent, DoKeyEvent, EventLike, MouseEvent
+from app.keyboard_layout import TABS
 from app.keys import Keys
 from app.modifs import Modifs
 from app.mouse_config import MouseConfig
@@ -62,6 +63,11 @@ class KeyProcessor:
 
         # diagnostics
         event = self._process_diagnostics(key, is_key_up)
+        if event:
+            return event
+
+        # keyboard cheat sheet
+        event = self._process_keyboard(key, is_key_up)
         if event:
             return event
 
@@ -168,6 +174,39 @@ class KeyProcessor:
         new_diagnostic_active = not self.state.diagnostic_active
         self.state.diagnostic_active = new_diagnostic_active
         return self._tag(Event(True), "control.diagnostics", "diagnostics")
+
+    def _process_keyboard(self, key: Keys, is_key_up: bool) -> Optional[Event]:
+        """Special + keyboard_key opens the cheat sheet; a bare ESC closes it.
+
+        ESC only closes, and only while the sheet is up and the special key is
+        not held - so Caps+ESC still exits DoKey, and ESC means ESC the rest of
+        the time. Every other key passes straight through while it is open: it
+        is a reference to read, not a mode to be trapped in.
+        """
+        if is_key_up:
+            return None
+
+        if self.state.keyboard_active:
+            if key == self.config.exit_key and not self.state.is_special_down:
+                self.state.keyboard_active = False
+                self.state.keyboard_tab = 0
+                return self._tag(Event(True), "control.keyboard", "keyboard")
+            step = {Keys.LEFT: -1, Keys.RIGHT: 1}.get(key)
+            if step is not None:
+                # the arrows belong to the sheet while it is up; ESC gives them
+                # back. Nothing else is intercepted.
+                self.state.keyboard_tab = (self.state.keyboard_tab + step) % len(TABS)
+                return self._tag(Event(True), "control.keyboard_tab", "keyboard")
+            return None
+
+        if not self.state.is_special_down:
+            return None
+        if key == Keys.NONE or key != self.config.keyboard_key:
+            return None
+
+        self.state.keyboard_active = True
+        self.state.prevent_prev_mode_on_special_up = True
+        return self._tag(Event(True), "control.keyboard", "keyboard")
 
     def _try_process_single_step(self, key: Keys) -> Optional[Event]:
         if self.state.is_special_down or self.state.modifs.win:
