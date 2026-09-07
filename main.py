@@ -11,8 +11,11 @@ from app.app import (
     HelpInterface,
     MouseInterface,
     DiagnosticsInterface,
+    KeyboardInterface,
 )
 from app.app_state import NORMAL, INSERT, MOUSE
+from app.keyboard_layout import build as build_keyboard_layout
+from app.keyboard_layout import unplaced_controls
 from app.keys import Keys
 from app.version import VERSION
 from app.usage import ConsoleFormatter, DiagnosticFilter, UsageHandler
@@ -117,6 +120,7 @@ if __name__ == "__main__":
     if not args.plain:
         from os_level.diagnostic_window import DiagnosticWindow
         from os_level.draw_on_screen import WinImage
+        from os_level.keyboard_window import KeyboardWindow
         from os_level.mouse_window import MouseImage
 
         win_image = WinImage()
@@ -145,6 +149,15 @@ if __name__ == "__main__":
         diagnostics_window = DiagnosticWindow(app.state)
         app.diagnostics_interface = DiagnosticsInterface(
             show=diagnostics_window.show, hide=diagnostics_window.clear
+        )
+        # Same reason, plus one of its own: the cheat sheet reads the live
+        # Config on every open, and App is what loaded it.
+        keyboard_window = KeyboardWindow(
+            lambda tab: build_keyboard_layout(app.config, tab),
+            footer_notes=lambda: unplaced_controls(app.config),
+        )
+        app.keyboard_interface = KeyboardInterface(
+            show=keyboard_window.show, hide=keyboard_window.clear
         )
     try:
         app.main()

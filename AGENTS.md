@@ -21,6 +21,10 @@ reversible changes. Do not restructure the app "for cleanliness" unless asked.**
 
 ## Platform constraints — read before changing anything
 
+- **One documented exception to the rule below:** `os_level/keyboard_window.py`
+  is pure Tk and imports fine on Linux — its DPI call is guarded and it pulls in
+  no other `os_level` module. That is deliberate, so `tools/keyboard_preview.py`
+  can render the cheat sheet from WSL. Keep it dependency-free that way.
 - **Windows only at runtime.** `os_level/` uses `ctypes.WinDLL("User32.dll")`,
   `dwmapi`, `ctypes.windll.shcore.SetProcessDpiAwareness`, the `win32_event_filter`
   `SetWindowsHookExW`/`SendInput`, and Tk overlay windows. Importing anything from `os_level/`
@@ -52,6 +56,7 @@ app/                          pure logic, no Windows API — this is the testabl
   config.py                   Config.from_file(): parses config.yaml + user overrides
   mouse_config.py             MouseConfig.from_file(): mouse grid positions
   keys.py                     Keys enum (values are Windows VK codes), name↔key map, FIRST_STEPS
+  keyboard_layout.py          ANSI cap rows + per-tab binding text for the cheat sheet
   events.py                   Event / SendEvent / WriteEvent / CMDEvent / DoKeyEvent / MouseEvent
   modifs.py                   Modifs: ctrl/shift/alt/win flags
   version.py                  VERSION - single source of truth
@@ -64,10 +69,12 @@ os_level/                     Windows-specific, not importable off Windows
   draw_on_screen.py           WinImage: Tk help overlay (per active process)
   mouse_window.py             MouseImage: Tk mouse-grid overlay + coordinate math
   diagnostic_window.py        DiagnosticWindow: Tk state overlay
+  keyboard_window.py          KeyboardWindow: Tk tabbed cheat sheet (imports on Linux)
   tray.py                     TrayIcon: Shell_NotifyIcon tray icon + message pump
 assets/                       tray icons, one per mode (+ normal_first_step)
 tools/                        offline helpers; never imported by the running app
   usage_report.py             reads logs/usage-summary-*.json: what is used, what never is
+  keyboard_preview.py         draws the cheat sheet with no hook; runs under WSLg
 tests/                        unittest; test_playlist.yaml is a data-driven state-machine table
 ```
 
@@ -117,7 +124,7 @@ the wrong place silently changes the whole keymap. Current order:
 2. real modifier keys → update `Modifs`
 3. sync modifiers from OS (`_try_update_modifs_by_os` — needed because `Win+L`
    locks the machine and the Win key-up event is never delivered)
-4. help key, diagnostics key
+4. help key, diagnostics key, keyboard cheat sheet
 5. key-up → nothing further
 6. mode change (`off_mode_key`, `change_mode_key`, `mouse_mode_key`, all with special held)
 7. mouse click (in MOUSE mode)
@@ -135,7 +142,10 @@ mode when Caps is released.
 Top level:
 
 - `special_key`, `change_mode_key`, `off_mode_key`, `mouse_mode_key`,
-  `clear_screen_key`, `exit_key`, `help_key`, `diagnostic_key`
+  `clear_screen_key`, `exit_key`, `help_key`, `diagnostic_key`, `keyboard_key`
+  (`keyboard_key` is the only one with a default — `apostrophe` — so a config
+  written before the cheat sheet existed still loads; every other name must be
+  popped, or it would be read as a two-step first step)
 - `special:` — mappings for *special key held* (works in Normal and Insert)
 - `common:` — single-key mappings, Normal mode only (hjkl arrows, etc.)
 - **every other top-level key is a two-step first step** (`f:`, `i:`, `d:`, `q:`,
@@ -172,6 +182,18 @@ substring of the active process name.
 - **Nothing outside a `__main__` block may `print()`.** Under `pythonw.exe`
   `sys.stdout` is `None` and `print()` raises `AttributeError`; several of these
   used to sit on the help-overlay draw path. Log instead.
+- **The cheat sheet owns ESC and the arrows only while it is open**, and ESC
+  only without the special key held. `Caps+ESC` still exits DoKey; the arrows
+  move between tabs and are swallowed; every other key passes through — it is a
+  reference to read, not a mode. Opening it sets
+  `prevent_prev_mode_on_special_up`, so it does not drop Insert mode.
+- **The cheat sheet's two tabs mirror `KeyProcessor` order.** The `special` tab
+  must show the control keys (help, diagnostics, cheat sheet, mode keys, exit,
+  clear screen) winning over any `special:` entry on the same key, because
+  `process()` reaches them first. If that order changes, `_controls()` in
+  `app/keyboard_layout.py` has to change with it or the picture starts lying.
+  `AppState.keyboard_tab` is an int index into `TABS`, deliberately, so
+  `app_state.py` keeps no dependency on the drawing side.
 - The diagnostics overlay is attached **after** `App` is constructed
   (`app.diagnostics_interface = ...`), because `DiagnosticWindow` renders the live
   `AppState` and `App` owns it.
@@ -181,6 +203,7 @@ substring of the active process name.
 ```bash
 python main.py            # tray icon + overlays
 python main.py --plain    # no Tk overlays (-p); still needs Windows for the hook
+python tools/keyboard_preview.py   # cheat sheet only; works under WSLg
 ```
 
 Logs: `logs/dokey.log`, daily rotation, 7 days kept (gitignored).

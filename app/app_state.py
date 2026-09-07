@@ -17,3 +17,7 @@ class AppState:
         self.mode: int = NORMAL
         self.first_step: Keys = Keys.NONE
         self.diagnostic_active = False
+        self.keyboard_active = False
+        # index into app.keyboard_layout.TABS; an int keeps AppState free of
+        # any dependency on the drawing side
+        self.keyboard_tab: int = 0
