@@ -15,7 +15,7 @@ from app.app import (
 from app.app_state import NORMAL, INSERT, MOUSE
 from app.keys import Keys
 from app.version import VERSION
-from app.usage import DiagnosticFilter, UsageHandler
+from app.usage import ConsoleFormatter, DiagnosticFilter, UsageHandler
 
 logger = logging.getLogger(__name__)
 
@@ -60,7 +60,7 @@ def init_logging():
     # add console handler
     console_handler = logging.StreamHandler()
     console_handler.setLevel(logging.INFO)
-    console_handler.addFilter(DiagnosticFilter())
+    console_handler.setFormatter(ConsoleFormatter())
 
     log_dir_path = root / "logs"
     log_dir_path.mkdir(parents=True, exist_ok=True)

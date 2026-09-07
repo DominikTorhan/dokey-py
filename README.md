@@ -49,6 +49,10 @@ switch modes using the special key (Caps Lock by default).
 ## Local usage logs
 
 DoKey writes local diagnostics and usage data under `logs/`. It sends no telemetry.
+When run from a terminal with `python main.py`, it also shows live, readable
+activity such as `BINDING binding=common.j action=keys`; held-key repeats are
+marked `repeat`. Command contents, typed text, and configuration manifests are
+not displayed in the terminal.
 
 - `dokey.log`: timestamped diagnostics with a process session ID; seven daily
   rotations are kept. Unsupported virtual keys are reported once per key per

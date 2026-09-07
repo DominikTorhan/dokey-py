@@ -15,7 +15,7 @@ class TestLogging(unittest.TestCase):
 
         class RecordingHandler(logging.Handler):
             def emit(self, record):
-                calls.append((record.getMessage(), threading.current_thread()))
+                calls.append((self.format(record), threading.current_thread()))
 
         logger = logging.Logger("test-dokey-logging")
         with (
@@ -50,7 +50,30 @@ class TestLogging(unittest.TestCase):
             self.assertEqual(
                 1, len(list((Path(directory) / "logs").glob("usage-summary-*.json")))
             )
-        self.assertEqual(2, sum(message == "key handled" for message, _ in calls))
+        self.assertEqual(
+            2, sum(message.endswith("key handled") for message, _ in calls)
+        )
         self.assertFalse(any(message == "usage" for message, _ in calls))
+        self.assertEqual(
+            1,
+            sum(
+                message == "BINDING binding=common.j action=keys"
+                for message, _ in calls
+            ),
+        )
         for _, thread in calls:
             self.assertIsNot(thread, caller)
+
+    def test_console_does_not_dump_payloads_or_change_structured_records(self):
+        fields = {
+            "event": "binding",
+            "binding": "two_step.a.a",
+            "action": "text",
+            "repeat": True,
+            "text": "private text",
+        }
+        record = logging.makeLogRecord({"msg": "usage", "usage": fields.copy()})
+        result = main.ConsoleFormatter().format(record)
+        self.assertEqual("BINDING binding=two_step.a.a action=text repeat", result)
+        self.assertEqual(fields, record.usage)
+        self.assertEqual("usage", record.msg)

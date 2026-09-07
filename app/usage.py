@@ -77,6 +77,25 @@ def configuration(config, mouse_config):
     return hashlib.sha256(payload).hexdigest(), bindings
 
 
+class ConsoleFormatter(logging.Formatter):
+    """Readable activity without dumping manifests or configuration contents."""
+
+    def format(self, record):
+        if not hasattr(record, "usage"):
+            return super().format(record)
+        fields = record.usage
+        parts = [fields["event"].upper()]
+        for name in (
+            "binding", "action", "mode", "previous", "current", "name",
+            "visible", "vk", "success", "worker_drained",
+        ):
+            if name in fields:
+                parts.append(f"{name}={fields[name]}")
+        if fields.get("repeat"):
+            parts.append("repeat")
+        return " ".join(parts)
+
+
 class DiagnosticFilter(logging.Filter):
     def filter(self, record):
         record.session_id = SESSION_ID
