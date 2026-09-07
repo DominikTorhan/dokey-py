@@ -54,17 +54,6 @@ class MouseLoc:
         self.y = 0.0
 
 
-def get_absolute_position_in_active_window(rx: float, ry: float):
-    rect = get_active_window_rect()
-    x = rect.left
-    y = rect.top
-    width = rect.right - rect.left
-    height = rect.bottom - rect.top
-    px = x + width * rx
-    py = y + height * ry
-    return (px, py)
-
-
 class MouseImage:
     def __init__(self, mouse_config_path):
         # self.root = None

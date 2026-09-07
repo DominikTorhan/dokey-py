@@ -75,6 +75,13 @@ playlist:
   - {input: "1,, f down", output: "1|f||||PREV"}
   - {input: "1,, q down", output: "1|q||||PREV"}
   # two step
+  - {input: "1,q, equal down", output: "1||||alt+shift+=|PREV"}
+  - {input: "1,w, equal down", output: "1||||alt+=|PREV"}
+  - {input: "1,e, equal down", output: "1||||ctrl+=|PREV"}
+  - {input: "1,r, equal down", output: "1||||shift+=|PREV"}
+  - {input: "1,t, equal down", output: "1||||ctrl+shift+=|PREV"}
+  - {input: "1,g, equal down", output: "1||||ctrl+alt+=|PREV"}
+  - {input: "1,b, equal down", output: "1||||ctrl+alt+shift+=|PREV"}
   - {input: "1,f, d1 down", output: "1||||f1|PREV"}
   - {input: "1,f, d2 down", output: "1||||f2|PREV"}
   - {input: "1,f, f down", output: "1||||f12|PREV"}
@@ -92,4 +99,6 @@ playlist:
   # write test
   - {input: "1,i, d2 down", output: "my_text"}
   # mouse test
-  #- {input: "1,i, m down", output: "None"}
+  - {input: "3,, q down", output: "mouse:0.01,0.01"}
+  - {input: "3,, j down", output: "mouse:0.65,0.35"}
+  - {input: "3,, enter down", output: "1|||||PREV"}

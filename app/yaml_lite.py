@@ -120,6 +120,8 @@ def _parse_scalar(s: str) -> Any:
     s = s.strip()
     if not s:
         return None
+    if s[0] in "&*!|>":
+        raise ValueError(f"unsupported YAML syntax: {s!r}")
     if s.startswith("["):
         if not s.endswith("]"):
             raise ValueError(f"unterminated flow sequence: {s!r}")

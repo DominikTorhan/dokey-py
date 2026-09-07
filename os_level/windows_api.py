@@ -51,6 +51,13 @@ def get_active_window_rect() -> RECT:
     return rect
 
 
+def get_absolute_position_in_active_window(rx: float, ry: float):
+    rect = get_active_window_rect()
+    width = rect.right - rect.left
+    height = rect.bottom - rect.top
+    return (rect.left + width * rx, rect.top + height * ry)
+
+
 def get_process_name(pid: int) -> str:
     """Executable name for a pid, e.g. "chrome.exe".
 

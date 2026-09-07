@@ -1,5 +1,7 @@
 import logging
-from logging.handlers import TimedRotatingFileHandler
+import atexit
+import queue
+from logging.handlers import QueueHandler, QueueListener, TimedRotatingFileHandler
 from pathlib import Path
 import argparse
 
@@ -13,11 +15,6 @@ from app.app import (
 from app.app_state import NORMAL, INSERT, MOUSE
 from app.keys import Keys
 from app.version import VERSION
-from os_level.diagnostic_window import DiagnosticWindow
-from os_level.draw_on_screen import WinImage
-from os_level.mouse_window import MouseImage
-from os_level.win_keyboard import WindowsListener
-from os_level.tray import TrayIcon
 
 logger = logging.getLogger(__name__)
 
@@ -33,6 +30,8 @@ STARTING_MODE = NORMAL
 
 # TrayApp
 def start_tray_app():
+    from os_level.tray import TrayIcon
+
     def get_icon_path(mode: int, first_step: Keys = Keys.NONE) -> str:
         path = TRAY_ICON_OFF
         if mode == NORMAL:
@@ -60,7 +59,6 @@ def init_logging():
     # add console handler
     console_handler = logging.StreamHandler()
     console_handler.setLevel(logging.INFO)
-    logger.addHandler(console_handler)
 
     log_dir_path = root / "logs"
     log_dir_path.mkdir(parents=True, exist_ok=True)
@@ -69,11 +67,18 @@ def init_logging():
         filename=filepath, when="D", backupCount=7, delay=True
     )
 
-    logger.addHandler(file_handler)
+    log_queue = queue.SimpleQueue()
+    listener = QueueListener(
+        log_queue, console_handler, file_handler, respect_handler_level=True
+    )
+    logger.addHandler(QueueHandler(log_queue))
     logger.setLevel(logging.INFO)
+    listener.start()
+    atexit.register(listener.stop)
 
     logger.critical(f"DoKey {VERSION}")
     logger.critical("init logging!")
+    return listener
 
 
 # main entrypoint
@@ -83,6 +88,8 @@ if __name__ == "__main__":
         "-p", "--plain", action="store_true", default=False, help="no graphics mode"
     )  # no graphics mode
     args = parser.parse_args()
+    from os_level.win_keyboard import WindowsListener
+
     init_logging()
     config_path = str(root / "app" / "config.yaml")
     mouse_config_path = str(root / "app" / "mouse_config.yaml")
@@ -90,6 +97,10 @@ if __name__ == "__main__":
     listener = WindowsListener()
     tray_app_interface = TrayAppInterface(set_icon=set_icon, stop=stop_app)
     if not args.plain:
+        from os_level.diagnostic_window import DiagnosticWindow
+        from os_level.draw_on_screen import WinImage
+        from os_level.mouse_window import MouseImage
+
         win_image = WinImage()
         mouse_image = MouseImage(mouse_config_path)
         help = HelpInterface(show=win_image.show, hide=win_image.clear)
