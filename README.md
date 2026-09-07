@@ -64,6 +64,17 @@ not displayed in the terminal.
   and process session. These are retained for 60 days. Sum counts across session
   files to get daily totals; each file is a snapshot, not an incremental batch.
 
+To read the data back, run the report:
+
+```bash
+python tools/usage_report.py
+```
+
+It ranks the bindings you actually press and lists the ones you never do, so a
+prefix that earns nothing can be reclaimed. Add `--days 30` to narrow the window,
+`--all` to list every unused binding, and `--logs <dir>` to point at another
+machine's logs.
+
 Binding IDs identify the branch that actually handled the key: `common.j`,
 `special.h`, `two_step.e.s`, `mouse.j`, or `control.help`, for example. Key names
 are canonical enum names in lowercase (`d1`, `comma`, `equal`, etc.). Prefix

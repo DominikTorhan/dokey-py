@@ -66,6 +66,8 @@ os_level/                     Windows-specific, not importable off Windows
   diagnostic_window.py        DiagnosticWindow: Tk state overlay
   tray.py                     TrayIcon: Shell_NotifyIcon tray icon + message pump
 assets/                       tray icons, one per mode (+ normal_first_step)
+tools/                        offline helpers; never imported by the running app
+  usage_report.py             reads logs/usage-summary-*.json: what is used, what never is
 tests/                        unittest; test_playlist.yaml is a data-driven state-machine table
 ```
 
@@ -184,6 +186,20 @@ python main.py --plain    # no Tk overlays (-p); still needs Windows for the hoo
 Logs: `logs/dokey.log`, daily rotation, 7 days kept (gitignored).
 Console handler is at INFO; set the root level to DEBUG in `init_logging()` to see
 every key event.
+
+Usage records live beside it: `usage.jsonl` (7 days) and
+`usage-summary-<date>-<session>.json` (60 days). They record *which binding fired*
+(`two_step.i.j`) and never what was typed - no `__write__` text, no command line.
+Read them with:
+
+```bash
+python tools/usage_report.py                    # <repo>/logs
+python tools/usage_report.py --logs D:/dokey/logs --days 30 --all
+```
+
+It ranks what gets used and, more usefully, lists what never does. `tools/` is
+stdlib-only and stands outside the `main.py -> os_level -> app` chain: nothing in
+the running app may import it.
 
 ## Tests
 
