@@ -343,6 +343,7 @@ keyboard_to_dokey_map = {
     "minus": Keys.MINUS,
     "=": Keys.EQUAL,
     "equal": Keys.EQUAL,
+    "plus": Keys.EQUAL,
     "/": Keys.SLASH,
     "slash": Keys.SLASH,
     "\\": Keys.BACKSLASH,
@@ -375,7 +376,7 @@ def keys_to_send(keys: List[Keys]) -> str:
     send = ""
     for key in keys:
         send += key.to_string()
-        if key.is_modif():
+        if key.is_modif_ex():
             send += "+"
         else:
             send += ","

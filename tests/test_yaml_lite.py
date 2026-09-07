@@ -47,6 +47,10 @@ CASES = {
     "empty value": ("a:\nb: x\n", {"a": None, "b": "x"}),
     "empty document": ("", None),
     "comments only": ("# just a comment\n\n# another\n", None),
+    "quoted unsupported indicators": (
+        'a: ["&anchor", "*alias", "!tag", "|", ">"]\n',
+        {"a": ["&anchor", "*alias", "!tag", "|", ">"]},
+    ),
 }
 
 
@@ -61,6 +65,13 @@ class TestYamlLite(unittest.TestCase):
         # produce the wrong structure
         with self.assertRaises(ValueError):
             yaml_lite.safe_load("items:\n  - key: value\n    other: value\n")
+
+    def test_unsupported_scalar_syntax_raises(self):
+        for value in ("&anchor value", "*anchor", "!tag value", "|", ">", "|-", ">2"):
+            for document in (f"a: {value}\n", f"a: [{value}]\n"):
+                with self.subTest(document=document):
+                    with self.assertRaises(ValueError):
+                        yaml_lite.safe_load(document)
 
     @unittest.skipIf(yaml is None, "PyYAML not installed")
     def test_matches_pyyaml_on_every_repo_yaml(self):

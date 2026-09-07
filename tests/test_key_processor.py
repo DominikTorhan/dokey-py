@@ -2,7 +2,7 @@ import unittest
 from pathlib import Path
 from app import yaml_lite
 from app.app_state import AppState
-from app.events import SendEvent, CMDEvent, WriteEvent, DoKeyEvent
+from app.events import SendEvent, CMDEvent, WriteEvent, DoKeyEvent, MouseEvent
 from app.key_processor import Event, KeyProcessor
 from app.config import Config
 from app.keys import Keys, string_to_multi_keys
@@ -25,7 +25,7 @@ class TestPlaylist(unittest.TestCase):
 
     def test_key_processor(self):
         config = Config.from_file(CONFIG_PATH)
-        mouse_config = MouseConfig.from_file(CONFIG_PATH)
+        mouse_config = MouseConfig.from_file(MOUSE_CONFIG_PATH)
         state = AppState()
         processor = KeyProcessor(config, mouse_config, state)
 
@@ -83,6 +83,10 @@ class TestPlaylist(unittest.TestCase):
                 self.assertEqual(1, state.mode)
                 self.assertEqual(Keys.NONE, state.first_step)
                 self.assertEqual(expected, event.text)
+                continue
+            if isinstance(event, MouseEvent):
+                self.assertEqual(1, state.mode)
+                self.assertEqual(expected, f"mouse:{event.rx},{event.ry}")
                 continue
             # 0||c|||PREV
 

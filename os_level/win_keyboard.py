@@ -32,7 +32,7 @@ from app.events import (
 )
 from app.keys import Keys, shift_keys, control_keys, alt_keys, win_keys
 from app.modifs import Modifs
-from os_level.mouse_window import get_absolute_position_in_active_window
+from os_level.windows_api import get_absolute_position_in_active_window
 
 logger = logging.getLogger(__name__)
 
@@ -287,20 +287,19 @@ class WindowsListener(ListenerABC):
             logger.critical(f"Missing VK {data.vkCode} in Keys!")
             return user32.CallNextHookEx(None, code, wparam, lparam)
 
-        os_event = OSEvent()
-        os_event.key = key
-        os_event.is_key_up = wparam in KEY_UP_MESSAGES
-        os_event.modifs_os = get_modif_state()
-
         try:
+            os_event = OSEvent()
+            os_event.key = key
+            os_event.is_key_up = wparam in KEY_UP_MESSAGES
+            os_event.modifs_os = get_modif_state()
             event: EventLike = self.func(os_event)
+            if self._perform(event):
+                return 1
         except Exception:
             # never let an exception escape into the hook
             logger.exception("Error handling key event")
             return user32.CallNextHookEx(None, code, wparam, lparam)
 
-        if self._perform(event):
-            return 1
         return user32.CallNextHookEx(None, code, wparam, lparam)
 
     def _perform(self, event: EventLike) -> bool:
@@ -327,7 +326,7 @@ class WindowsListener(ListenerABC):
     def send_keys(self, send: List[Keys]):
         modifs: List[Keys] = []
         for key in send:
-            if key.is_modif():
+            if key.is_modif_ex():
                 modifs.append(key)
                 continue
             items = [_key_input(m.value, False) for m in modifs]
