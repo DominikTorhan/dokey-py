@@ -58,6 +58,9 @@ VK_CAPITAL = 0x14
 KEY_DOWN_BIT = 0x8000
 KEY_TOGGLED_BIT = 0x0001
 
+# MapVirtualKeyW: virtual key -> unextended hardware scan code
+MAPVK_VK_TO_VSC = 0
+
 INPUT_MOUSE, INPUT_KEYBOARD = 0, 1
 KEYEVENTF_EXTENDEDKEY = 0x0001
 KEYEVENTF_KEYUP = 0x0002
@@ -166,6 +169,8 @@ user32.GetMessageW.argtypes = [
 ]
 user32.SendInput.restype = wintypes.UINT
 user32.SendInput.argtypes = [wintypes.UINT, ctypes.POINTER(INPUT), ctypes.c_int]
+user32.MapVirtualKeyW.restype = wintypes.UINT
+user32.MapVirtualKeyW.argtypes = [wintypes.UINT, wintypes.UINT]
 user32.GetKeyState.restype = ctypes.c_short
 user32.GetKeyState.argtypes = [ctypes.c_int]
 user32.GetAsyncKeyState.restype = ctypes.c_short
@@ -203,7 +208,19 @@ def _key_input(vk: int, is_up: bool) -> INPUT:
         flags |= KEYEVENTF_EXTENDEDKEY
     item = INPUT(type=INPUT_KEYBOARD)
     item.ki = KEYBDINPUT(
-        wVk=vk, wScan=0, dwFlags=flags, time=0, dwExtraInfo=DOKEY_EXTRA_INFO
+        wVk=vk,
+        # Real hardware always carries a scan code, and SendInput does not fill
+        # one in - a wVk-only event arrives with scanCode 0. Most windows read
+        # the virtual key and never notice, but the ones that re-derive the
+        # character from the scan code (ConEmu/cmder, remote desktop and VM
+        # clients, games on raw input) then translate a key that does not
+        # exist, which is how a single stray character lands next to an
+        # injected Ctrl+V. MAPVK_VK_TO_VSC returns the unextended code, which
+        # is what KEYEVENTF_EXTENDEDKEY above expects to be paired with.
+        wScan=user32.MapVirtualKeyW(vk, MAPVK_VK_TO_VSC),
+        dwFlags=flags,
+        time=0,
+        dwExtraInfo=DOKEY_EXTRA_INFO,
     )
     return item
 

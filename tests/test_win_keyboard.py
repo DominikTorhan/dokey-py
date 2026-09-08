@@ -17,11 +17,18 @@ class TestWindowsKeyboard(unittest.TestCase):
         spec = importlib.util.spec_from_file_location("tested_win_keyboard", path)
         cls.keyboard = importlib.util.module_from_spec(spec)
         with (
-            patch.object(ctypes, "WinDLL", create=True),
+            patch.object(ctypes, "WinDLL", create=True) as win_dll,
             patch.object(ctypes, "WINFUNCTYPE", ctypes.CFUNCTYPE, create=True),
             patch.dict("sys.modules", {"os_level.windows_api": Mock()}),
         ):
+            # stands in for the layout table: any non-zero code will do, it
+            # only has to be a real int so it can go into a WORD field
+            win_dll.return_value.MapVirtualKeyW.side_effect = cls.scan_code
             spec.loader.exec_module(cls.keyboard)
+
+    @staticmethod
+    def scan_code(vk, _mapping):
+        return 0x80 | (vk & 0x7F)
 
     def test_win_chord_is_held_until_target_key_is_released(self):
         keyboard = self.keyboard
@@ -123,3 +130,39 @@ class TestWindowsKeyboard(unittest.TestCase):
         ):
             self.keyboard.WindowsListener().write_text("private text")
         info.assert_not_called()
+
+    def test_injected_keys_carry_a_scan_code(self):
+        """A wVk-only event reaches the foreground window with scanCode 0.
+
+        Windows itself does not mind, but a window that reads the scan code
+        instead of the virtual key - cmder is one - then decodes a key that
+        does not exist and shows a stray character next to the real one.
+        """
+        keyboard = self.keyboard
+        listener = keyboard.WindowsListener()
+        with patch.object(keyboard, "_send") as send:
+            listener.send_keys(string_to_multi_keys("ctrl+v"))
+        items = send.call_args.args[0]
+        self.assertEqual(
+            [
+                (Keys.LEFT_CTRL.value, self.scan_code(Keys.LEFT_CTRL.value, 0)),
+                (Keys.V.value, self.scan_code(Keys.V.value, 0)),
+                (Keys.V.value, self.scan_code(Keys.V.value, 0)),
+                (Keys.LEFT_CTRL.value, self.scan_code(Keys.LEFT_CTRL.value, 0)),
+            ],
+            [(item.ki.wVk, item.ki.wScan) for item in items],
+        )
+
+    def test_extended_keys_keep_the_unextended_scan_code(self):
+        """The extended flag and the 0xE0 prefix are the same statement.
+
+        MapVirtualKey returns the unextended code and KEYEVENTF_EXTENDEDKEY
+        supplies the prefix; sending a pre-extended code alongside the flag
+        would say it twice and land on the numpad twin.
+        """
+        keyboard = self.keyboard
+        with patch.object(keyboard, "_send") as send:
+            keyboard.WindowsListener().send_keys([Keys.LEFT])
+        item = send.call_args.args[0][0]
+        self.assertTrue(item.ki.dwFlags & keyboard.KEYEVENTF_EXTENDEDKEY)
+        self.assertEqual(self.scan_code(Keys.LEFT.value, 0), item.ki.wScan)
