@@ -1,435 +1,462 @@
 # Main configuration
-special_key: capital # caps lock
-change_mode_key: f
-off_mode_key: q
-mouse_mode_key: u
-clear_screen_key: s
-exit_key: esc # ESC
-help_key: slash
-diagnostic_key: backslash
-keyboard_key: apostrophe # special + ' opens the keyboard overlay, ESC closes it
 
-special: # tigger with special key (usually caps lock). Used in 1 (normal) and 2 (insert) mode
-  # q offmode
-  e: esc
-  r: enter
-  t: tab
-  d: del
-  # f reserved to change status
-  g: shift+tab
-  c: shift+f10 # Shift + F10 (context menu)
-  v: ctrl+shift+v # Ctrl + Shift + v (paste without formatting)
-  b: menu # context menu key
-  # right hand
-  y: ctrl+backspace
-  # u reserved to mouse mode
-  # i
-  # o
-  # p os pallete?
-  h: backspace
-  j: enter
-  # k
-  l: del
-  n: ctrl+enter # run code
-  m: ctrl+tab
-  comma: ctrl+shift+tab
+# Config format version 2. See app/user_config.example.yaml for the shape,
+# and AGENTS.md for why the sections are named rather than implied.
+version: 2
 
-common: # without first step
-  h: left # left arrow
-  j: down # down arrow
-  k: up # up arrow
-  l: right # right arrow
-  n: home
-  m: page down
-  comma: page up
-  period: end
-  y: ctrl+left # CTRL + left arrow (go by word)
-  o: ctrl+right # CTRL + right arrow (go by word)
-  z: ctrl+z # CTRL + z
-  x: ctrl+x # CTRL + x
-  c: ctrl+c # CTRL + c
-  v: ctrl+v # CTRL + v
+keys: # the control keys, in the order KeyProcessor.process() reaches them
+  special: capital # caps lock
+  change_mode: f
+  off_mode: q
+  mouse_mode: u
+  clear_screen: s
+  exit: esc # ESC
+  help: slash
+  diagnostic: backslash
+  keyboard: apostrophe # special + ' opens the keyboard overlay, ESC closes it
 
-f: # first step f
-  # F keys
-  d1: f1
-  d2: f2
-  d3: f3
-  d4: f4
-  d5: f5
-  d6: f6
-  q: f7
-  w: f8
-  e: f9
-  r: f10
-  t: f11
-  f: f12
-  # other shortcuts
-  h: ctrl+` # Cmder focus terminal
-  s: shift+esc # shift ESC
-  j: ctrl+alt+tab
-  k: alt+tab
+layers: # what a key does on its own (common) or with the special key held
+  special: # tigger with special key (usually caps lock). Used in 1 (normal) and 2 (insert) mode
+    bindings:
+      # q offmode
+      e: esc
+      r: enter
+      t: tab
+      d: del
+      # f reserved to change status
+      g: shift+tab
+      c: shift+f10 # Shift + F10 (context menu)
+      v: ctrl+shift+v # Ctrl + Shift + v (paste without formatting)
+      b: menu # context menu key
+      # right hand
+      y: ctrl+backspace
+      # u reserved to mouse mode
+      # i
+      # o
+      # p os pallete?
+      h: backspace
+      j: enter
+      # k
+      l: del
+      n: ctrl+enter # run code
+      m: ctrl+tab
+      comma: ctrl+shift+tab
 
-#Bellow Two step combinations:
-a:
-  a: __write__<test_override>
-  b: __write__<test_override>
+  common: # without first step
+    bindings:
+      h: left # left arrow
+      j: down # down arrow
+      k: up # up arrow
+      l: right # right arrow
+      n: home
+      m: page down
+      comma: page up
+      period: end
+      y: ctrl+left # CTRL + left arrow (go by word)
+      o: ctrl+right # CTRL + right arrow (go by word)
+      z: ctrl+z # CTRL + z
+      x: ctrl+x # CTRL + x
+      c: ctrl+c # CTRL + c
+      v: ctrl+v # CTRL + v
 
-i: # first step i
-  s: ctrl+f12
-  j: end, enter # Insert line below
-  k: up, end, enter # Insert line above
-  c: ctrl+/ # comment / uncomment code in pycharm
-  p: alt+insert # freecomander copy current path
-  v: shift+insert # linux paste
-  n: shift+alt+insert # freecomander copy current file name
-  m: ctrl+alt+insert # freecomander copy current dir path
-  # other features, for now only for tests
-  d1: __command__<start chrome /new-tab> # browser
-  d2: __write__<my_text>
 
-d: # first step d
-  e: alt+1 # pycharm project window
-  r: shift+alt+f12 # vscode find all references
-  p: ctrl+shift+quote
-  d: alt+5 # pycharm debug window
-  f: alt+3 # pycharm find window
-  t: alt+f12 # pycharm show terminal
-  z: ctrl+f7,ctrl+f8 # EvernoteFocusListTrick
-  c: ctrl+k,w # vscode close all tabs
+two_step: # first steps; the sections here ARE the first steps
+  f: # first step f
+    bindings:
+      # F keys
+      d1: f1
+      d2: f2
+      d3: f3
+      d4: f4
+      d5: f5
+      d6: f6
+      q: f7
+      w: f8
+      e: f9
+      r: f10
+      t: f11
+      f: f12
+      # other shortcuts
+      h: ctrl+` # Cmder focus terminal
+      s: shift+esc # shift ESC
+      j: ctrl+alt+tab
+      k: alt+tab
 
-q:
-  d1: alt+shift+f1
-  d2: alt+shift+f2
-  d3: alt+shift+f3
-  d4: alt+shift+f4
-  d5: alt+shift+f5
-  d6: alt+shift+f6
-  d7: alt+shift+f7
-  d8: alt+shift+f8
-  d9: alt+shift+f9
-  d0: alt+shift+f10
-  minus: alt+shift+-
-  plus: alt+shift+=
-  q: alt+shift+q
-  w: alt+shift+w
-  e: alt+shift+e
-  r: alt+shift+r
-  t: alt+shift+t
-  y: alt+shift+y
-  u: alt+shift+u
-  i: alt+shift+i
-  o: alt+shift+o
-  p: alt+shift+p
-  a: alt+shift+a
-  s: alt+shift+s
-  d: alt+shift+d
-  f: alt+shift+f
-  g: alt+shift+g
-  h: alt+shift+h
-  j: alt+shift+j
-  k: alt+shift+k
-  l: alt+shift+l
-  semicolon: alt+shift+;
-  apostrophe: alt+shift+'
-  z: alt+shift+z
-  x: alt+shift+x
-  c: alt+shift+c
-  v: alt+shift+v
-  b: alt+shift+b
-  n: alt+shift+n
-  m: alt+shift+m
-  #comma: alt+shift+comma # tricky case!!!
-  period: alt+shift+.
-  slash: alt+shift+/
-  square_bracket_open: alt+shift+[
-  square_bracket_close: alt+shift+]
-  backslash: alt+shift+\
+    #Bellow Two step combinations:
+  a:
+    bindings:
+      a: __write__<test_override>
+      b: __write__<test_override>
 
-w:
-  d1: alt+f1
-  d2: alt+f2
-  d3: alt+f3
-  d4: alt+f4
-  d5: alt+f5
-  d6: alt+f6
-  d7: alt+f7
-  d8: alt+f8
-  d9: alt+f9
-  d0: alt+f10
-  minus: alt+-
-  plus: alt+=
-  q: alt+q
-  w: alt+w
-  e: alt+e
-  r: alt+r
-  t: alt+t
-  y: alt+y
-  u: alt+u
-  i: alt+i
-  o: alt+o
-  p: alt+p
-  a: alt+a
-  s: alt+s
-  d: alt+d
-  f: alt+f
-  g: alt+g
-  h: alt+h
-  j: alt+j
-  k: alt+k
-  l: alt+l
-  semicolon: alt+;
-  apostrophe: alt+'
-  z: alt+z
-  x: alt+x
-  c: alt+c
-  v: alt+v
-  b: alt+b
-  n: alt+n
-  m: alt+m
-  #comma: alt+comma # tricky case!!!
-  period: alt+.
-  slash: alt+/
-  square_bracket_open: alt+[
-  square_bracket_close: alt+]
-  backslash: alt+\
+  i: # first step i
+    bindings:
+      s: ctrl+f12
+      j: end, enter # Insert line below
+      k: up, end, enter # Insert line above
+      c: ctrl+/ # comment / uncomment code in pycharm
+      p: alt+insert # freecomander copy current path
+      v: shift+insert # linux paste
+      n: shift+alt+insert # freecomander copy current file name
+      m: ctrl+alt+insert # freecomander copy current dir path
+      # other features, for now only for tests
+      d1: __command__<start chrome /new-tab> # browser
+      d2: __write__<my_text>
 
-e:
-  d1: ctrl+f1
-  d2: ctrl+f2
-  d3: ctrl+f3
-  d4: ctrl+f4
-  d5: ctrl+f5
-  d6: ctrl+f6
-  d7: ctrl+f7
-  d8: ctrl+f8
-  d9: ctrl+f9
-  d0: ctrl+f10
-  minus: ctrl+-
-  plus: ctrl+=
-  q: ctrl+q
-  w: ctrl+w
-  e: ctrl+e
-  r: ctrl+r
-  t: ctrl+t
-  y: ctrl+y
-  u: ctrl+u
-  i: ctrl+i
-  o: ctrl+o
-  p: ctrl+p
-  a: ctrl+a
-  s: ctrl+s
-  d: ctrl+d
-  f: ctrl+f
-  g: ctrl+g
-  h: ctrl+h
-  j: ctrl+j
-  k: ctrl+k
-  l: ctrl+l
-  semicolon: ctrl+;
-  apostrophe: ctrl+'
-  z: ctrl+z
-  x: ctrl+x
-  c: ctrl+c
-  v: ctrl+v
-  b: ctrl+b
-  n: ctrl+n
-  m: ctrl+m
-  #comma: ctrl+comma # tricky case!!!
-  period: ctrl+.
-  slash: ctrl+/
-  square_bracket_open: ctrl+[
-  square_bracket_close: ctrl+]
-  backslash: ctrl+\
+  d: # first step d
+    bindings:
+      e: alt+1 # pycharm project window
+      r: shift+alt+f12 # vscode find all references
+      p: ctrl+shift+quote
+      d: alt+5 # pycharm debug window
+      f: alt+3 # pycharm find window
+      t: alt+f12 # pycharm show terminal
+      z: ctrl+f7,ctrl+f8 # EvernoteFocusListTrick
+      c: ctrl+k,w # vscode close all tabs
 
-r:
-  d1: shift+f1
-  d2: shift+f2
-  d3: shift+f3
-  d4: shift+f4
-  d5: shift+f5
-  d6: shift+f6
-  d7: shift+f7
-  d8: shift+f8
-  d9: shift+f9
-  d0: shift+f10
-  minus: shift+-
-  plus: shift+=
-  q: shift+q
-  w: shift+w
-  e: shift+e
-  r: shift+r
-  t: shift+t
-  y: shift+y
-  u: shift+u
-  i: shift+i
-  o: shift+o
-  p: shift+p
-  a: shift+a
-  s: shift+s
-  d: shift+d
-  f: shift+f
-  g: shift+g
-  h: shift+h
-  j: shift+j
-  k: shift+k
-  l: shift+l
-  semicolon: shift+;
-  apostrophe: shift+'
-  z: shift+z
-  x: shift+x
-  c: shift+c
-  v: shift+v
-  b: shift+b
-  n: shift+n
-  m: shift+m
-  #comma: shift+comma # tricky case!!!
-  period: shift+.
-  slash: shift+/
-  square_bracket_open: shift+[
-  square_bracket_close: shift+]
-  backslash: shift+\
+  q:
+    bindings:
+      d1: alt+shift+f1
+      d2: alt+shift+f2
+      d3: alt+shift+f3
+      d4: alt+shift+f4
+      d5: alt+shift+f5
+      d6: alt+shift+f6
+      d7: alt+shift+f7
+      d8: alt+shift+f8
+      d9: alt+shift+f9
+      d0: alt+shift+f10
+      minus: alt+shift+-
+      plus: alt+shift+=
+      q: alt+shift+q
+      w: alt+shift+w
+      e: alt+shift+e
+      r: alt+shift+r
+      t: alt+shift+t
+      y: alt+shift+y
+      u: alt+shift+u
+      i: alt+shift+i
+      o: alt+shift+o
+      p: alt+shift+p
+      a: alt+shift+a
+      s: alt+shift+s
+      d: alt+shift+d
+      f: alt+shift+f
+      g: alt+shift+g
+      h: alt+shift+h
+      j: alt+shift+j
+      k: alt+shift+k
+      l: alt+shift+l
+      semicolon: alt+shift+;
+      apostrophe: alt+shift+'
+      z: alt+shift+z
+      x: alt+shift+x
+      c: alt+shift+c
+      v: alt+shift+v
+      b: alt+shift+b
+      n: alt+shift+n
+      m: alt+shift+m
+      #comma: alt+shift+comma # tricky case!!!
+      period: alt+shift+.
+      slash: alt+shift+/
+      square_bracket_open: alt+shift+[
+      square_bracket_close: alt+shift+]
+      backslash: alt+shift+\
 
-t:
-  d1: ctrl+shift+f1
-  d2: ctrl+shift+f2
-  d3: ctrl+shift+f3
-  d4: ctrl+shift+f4
-  d5: ctrl+shift+f5
-  d6: ctrl+shift+f6
-  d7: ctrl+shift+f7
-  d8: ctrl+shift+f8
-  d9: ctrl+shift+f9
-  d0: ctrl+shift+f10
-  minus: ctrl+shift+-
-  plus: ctrl+shift+=
-  q: ctrl+shift+q
-  w: ctrl+shift+w
-  e: ctrl+shift+e
-  r: ctrl+shift+r
-  t: ctrl+shift+t
-  y: ctrl+shift+y
-  u: ctrl+shift+u
-  i: ctrl+shift+i
-  o: ctrl+shift+o
-  p: ctrl+shift+p
-  a: ctrl+shift+a
-  s: ctrl+shift+s
-  d: ctrl+shift+d
-  f: ctrl+shift+f
-  g: ctrl+shift+g
-  h: ctrl+shift+h
-  j: ctrl+shift+j
-  k: ctrl+shift+k
-  l: ctrl+shift+l
-  semicolon: ctrl+shift+;
-  apostrophe: ctrl+shift+'
-  z: ctrl+shift+z
-  x: ctrl+shift+x
-  c: ctrl+shift+c
-  v: ctrl+shift+v
-  b: ctrl+shift+b
-  n: ctrl+shift+n
-  m: ctrl+shift+m
-  #comma: ctrl+shift+comma # tricky case!!!
-  period: ctrl+shift+.
-  slash: ctrl+shift+/
-  square_bracket_open: ctrl+shift+[
-  square_bracket_close: ctrl+shift+]
-  backslash: ctrl+shift+\
+  w:
+    bindings:
+      d1: alt+f1
+      d2: alt+f2
+      d3: alt+f3
+      d4: alt+f4
+      d5: alt+f5
+      d6: alt+f6
+      d7: alt+f7
+      d8: alt+f8
+      d9: alt+f9
+      d0: alt+f10
+      minus: alt+-
+      plus: alt+=
+      q: alt+q
+      w: alt+w
+      e: alt+e
+      r: alt+r
+      t: alt+t
+      y: alt+y
+      u: alt+u
+      i: alt+i
+      o: alt+o
+      p: alt+p
+      a: alt+a
+      s: alt+s
+      d: alt+d
+      f: alt+f
+      g: alt+g
+      h: alt+h
+      j: alt+j
+      k: alt+k
+      l: alt+l
+      semicolon: alt+;
+      apostrophe: alt+'
+      z: alt+z
+      x: alt+x
+      c: alt+c
+      v: alt+v
+      b: alt+b
+      n: alt+n
+      m: alt+m
+      #comma: alt+comma # tricky case!!!
+      period: alt+.
+      slash: alt+/
+      square_bracket_open: alt+[
+      square_bracket_close: alt+]
+      backslash: alt+\
 
-g:
-  d1: ctrl+alt+f1
-  d2: ctrl+alt+f2
-  d3: ctrl+alt+f3
-  d4: ctrl+alt+f4
-  d5: ctrl+alt+f5
-  d6: ctrl+alt+f6
-  d7: ctrl+alt+f7
-  d8: ctrl+alt+f8
-  d9: ctrl+alt+f9
-  d0: ctrl+alt+f10
-  minus: ctrl+alt+-
-  plus: ctrl+alt+=
-  q: ctrl+alt+q
-  w: ctrl+alt+w
-  e: ctrl+alt+e
-  r: ctrl+alt+r
-  t: ctrl+alt+t
-  y: ctrl+alt+y
-  u: ctrl+alt+u
-  i: ctrl+alt+i
-  o: ctrl+alt+o
-  p: ctrl+alt+p
-  a: ctrl+alt+a
-  s: ctrl+alt+s
-  d: ctrl+alt+d
-  f: ctrl+alt+f
-  g: ctrl+alt+g
-  h: ctrl+alt+h
-  j: ctrl+alt+j
-  k: ctrl+alt+k
-  l: ctrl+alt+l
-  semicolon: ctrl+alt+;
-  apostrophe: ctrl+alt+'
-  z: ctrl+alt+z
-  x: ctrl+alt+x
-  c: ctrl+alt+c
-  v: ctrl+alt+v
-  b: ctrl+alt+b
-  n: ctrl+alt+n
-  m: ctrl+alt+m
-  #comma: ctrl+alt+comma # tricky case!!!
-  period: ctrl+alt+.
-  slash: ctrl+alt+/
-  square_bracket_open: ctrl+alt+[
-  square_bracket_close: ctrl+alt+]
-  backslash: ctrl+alt+\
+  e:
+    bindings:
+      d1: ctrl+f1
+      d2: ctrl+f2
+      d3: ctrl+f3
+      d4: ctrl+f4
+      d5: ctrl+f5
+      d6: ctrl+f6
+      d7: ctrl+f7
+      d8: ctrl+f8
+      d9: ctrl+f9
+      d0: ctrl+f10
+      minus: ctrl+-
+      plus: ctrl+=
+      q: ctrl+q
+      w: ctrl+w
+      e: ctrl+e
+      r: ctrl+r
+      t: ctrl+t
+      y: ctrl+y
+      u: ctrl+u
+      i: ctrl+i
+      o: ctrl+o
+      p: ctrl+p
+      a: ctrl+a
+      s: ctrl+s
+      d: ctrl+d
+      f: ctrl+f
+      g: ctrl+g
+      h: ctrl+h
+      j: ctrl+j
+      k: ctrl+k
+      l: ctrl+l
+      semicolon: ctrl+;
+      apostrophe: ctrl+'
+      z: ctrl+z
+      x: ctrl+x
+      c: ctrl+c
+      v: ctrl+v
+      b: ctrl+b
+      n: ctrl+n
+      m: ctrl+m
+      #comma: ctrl+comma # tricky case!!!
+      period: ctrl+.
+      slash: ctrl+/
+      square_bracket_open: ctrl+[
+      square_bracket_close: ctrl+]
+      backslash: ctrl+\
 
-b:
-  d1: ctrl+alt+shift+f1
-  d2: ctrl+alt+shift+f2
-  d3: ctrl+alt+shift+f3
-  d4: ctrl+alt+shift+f4
-  d5: ctrl+alt+shift+f5
-  d6: ctrl+alt+shift+f6
-  d7: ctrl+alt+shift+f7
-  d8: ctrl+alt+shift+f8
-  d9: ctrl+alt+shift+f9
-  d0: ctrl+alt+shift+f10
-  minus: ctrl+alt+shift+-
-  plus: ctrl+alt+shift+=
-  q: ctrl+alt+shift+q
-  w: ctrl+alt+shift+w
-  e: ctrl+alt+shift+e
-  r: ctrl+alt+shift+r
-  t: ctrl+alt+shift+t
-  y: ctrl+alt+shift+y
-  u: ctrl+alt+shift+u
-  i: ctrl+alt+shift+i
-  o: ctrl+alt+shift+o
-  p: ctrl+alt+shift+p
-  a: ctrl+alt+shift+a
-  s: ctrl+alt+shift+s
-  d: ctrl+alt+shift+d
-  f: ctrl+alt+shift+f
-  g: ctrl+alt+shift+g
-  h: ctrl+alt+shift+h
-  j: ctrl+alt+shift+j
-  k: ctrl+alt+shift+k
-  l: ctrl+alt+shift+l
-  semicolon: ctrl+alt+shift+;
-  apostrophe: ctrl+alt+shift+'
-  z: ctrl+alt+shift+z
-  x: ctrl+alt+shift+x
-  c: ctrl+alt+shift+c
-  v: ctrl+alt+shift+v
-  b: ctrl+alt+shift+b
-  n: ctrl+alt+shift+n
-  m: ctrl+alt+shift+m
-  #comma: ctrl+alt+shift+comma # tricky case!!!
-  period: ctrl+alt+shift+.
-  slash: ctrl+alt+shift+/
-  square_bracket_open: ctrl+alt+shift+[
-  square_bracket_close: ctrl+alt+shift+]
-  backslash: ctrl+alt+shift+\
+  r:
+    bindings:
+      d1: shift+f1
+      d2: shift+f2
+      d3: shift+f3
+      d4: shift+f4
+      d5: shift+f5
+      d6: shift+f6
+      d7: shift+f7
+      d8: shift+f8
+      d9: shift+f9
+      d0: shift+f10
+      minus: shift+-
+      plus: shift+=
+      q: shift+q
+      w: shift+w
+      e: shift+e
+      r: shift+r
+      t: shift+t
+      y: shift+y
+      u: shift+u
+      i: shift+i
+      o: shift+o
+      p: shift+p
+      a: shift+a
+      s: shift+s
+      d: shift+d
+      f: shift+f
+      g: shift+g
+      h: shift+h
+      j: shift+j
+      k: shift+k
+      l: shift+l
+      semicolon: shift+;
+      apostrophe: shift+'
+      z: shift+z
+      x: shift+x
+      c: shift+c
+      v: shift+v
+      b: shift+b
+      n: shift+n
+      m: shift+m
+      #comma: shift+comma # tricky case!!!
+      period: shift+.
+      slash: shift+/
+      square_bracket_open: shift+[
+      square_bracket_close: shift+]
+      backslash: shift+\
+
+  t:
+    bindings:
+      d1: ctrl+shift+f1
+      d2: ctrl+shift+f2
+      d3: ctrl+shift+f3
+      d4: ctrl+shift+f4
+      d5: ctrl+shift+f5
+      d6: ctrl+shift+f6
+      d7: ctrl+shift+f7
+      d8: ctrl+shift+f8
+      d9: ctrl+shift+f9
+      d0: ctrl+shift+f10
+      minus: ctrl+shift+-
+      plus: ctrl+shift+=
+      q: ctrl+shift+q
+      w: ctrl+shift+w
+      e: ctrl+shift+e
+      r: ctrl+shift+r
+      t: ctrl+shift+t
+      y: ctrl+shift+y
+      u: ctrl+shift+u
+      i: ctrl+shift+i
+      o: ctrl+shift+o
+      p: ctrl+shift+p
+      a: ctrl+shift+a
+      s: ctrl+shift+s
+      d: ctrl+shift+d
+      f: ctrl+shift+f
+      g: ctrl+shift+g
+      h: ctrl+shift+h
+      j: ctrl+shift+j
+      k: ctrl+shift+k
+      l: ctrl+shift+l
+      semicolon: ctrl+shift+;
+      apostrophe: ctrl+shift+'
+      z: ctrl+shift+z
+      x: ctrl+shift+x
+      c: ctrl+shift+c
+      v: ctrl+shift+v
+      b: ctrl+shift+b
+      n: ctrl+shift+n
+      m: ctrl+shift+m
+      #comma: ctrl+shift+comma # tricky case!!!
+      period: ctrl+shift+.
+      slash: ctrl+shift+/
+      square_bracket_open: ctrl+shift+[
+      square_bracket_close: ctrl+shift+]
+      backslash: ctrl+shift+\
+
+  g:
+    bindings:
+      d1: ctrl+alt+f1
+      d2: ctrl+alt+f2
+      d3: ctrl+alt+f3
+      d4: ctrl+alt+f4
+      d5: ctrl+alt+f5
+      d6: ctrl+alt+f6
+      d7: ctrl+alt+f7
+      d8: ctrl+alt+f8
+      d9: ctrl+alt+f9
+      d0: ctrl+alt+f10
+      minus: ctrl+alt+-
+      plus: ctrl+alt+=
+      q: ctrl+alt+q
+      w: ctrl+alt+w
+      e: ctrl+alt+e
+      r: ctrl+alt+r
+      t: ctrl+alt+t
+      y: ctrl+alt+y
+      u: ctrl+alt+u
+      i: ctrl+alt+i
+      o: ctrl+alt+o
+      p: ctrl+alt+p
+      a: ctrl+alt+a
+      s: ctrl+alt+s
+      d: ctrl+alt+d
+      f: ctrl+alt+f
+      g: ctrl+alt+g
+      h: ctrl+alt+h
+      j: ctrl+alt+j
+      k: ctrl+alt+k
+      l: ctrl+alt+l
+      semicolon: ctrl+alt+;
+      apostrophe: ctrl+alt+'
+      z: ctrl+alt+z
+      x: ctrl+alt+x
+      c: ctrl+alt+c
+      v: ctrl+alt+v
+      b: ctrl+alt+b
+      n: ctrl+alt+n
+      m: ctrl+alt+m
+      #comma: ctrl+alt+comma # tricky case!!!
+      period: ctrl+alt+.
+      slash: ctrl+alt+/
+      square_bracket_open: ctrl+alt+[
+      square_bracket_close: ctrl+alt+]
+      backslash: ctrl+alt+\
+
+  b:
+    bindings:
+      d1: ctrl+alt+shift+f1
+      d2: ctrl+alt+shift+f2
+      d3: ctrl+alt+shift+f3
+      d4: ctrl+alt+shift+f4
+      d5: ctrl+alt+shift+f5
+      d6: ctrl+alt+shift+f6
+      d7: ctrl+alt+shift+f7
+      d8: ctrl+alt+shift+f8
+      d9: ctrl+alt+shift+f9
+      d0: ctrl+alt+shift+f10
+      minus: ctrl+alt+shift+-
+      plus: ctrl+alt+shift+=
+      q: ctrl+alt+shift+q
+      w: ctrl+alt+shift+w
+      e: ctrl+alt+shift+e
+      r: ctrl+alt+shift+r
+      t: ctrl+alt+shift+t
+      y: ctrl+alt+shift+y
+      u: ctrl+alt+shift+u
+      i: ctrl+alt+shift+i
+      o: ctrl+alt+shift+o
+      p: ctrl+alt+shift+p
+      a: ctrl+alt+shift+a
+      s: ctrl+alt+shift+s
+      d: ctrl+alt+shift+d
+      f: ctrl+alt+shift+f
+      g: ctrl+alt+shift+g
+      h: ctrl+alt+shift+h
+      j: ctrl+alt+shift+j
+      k: ctrl+alt+shift+k
+      l: ctrl+alt+shift+l
+      semicolon: ctrl+alt+shift+;
+      apostrophe: ctrl+alt+shift+'
+      z: ctrl+alt+shift+z
+      x: ctrl+alt+shift+x
+      c: ctrl+alt+shift+c
+      v: ctrl+alt+shift+v
+      b: ctrl+alt+shift+b
+      n: ctrl+alt+shift+n
+      m: ctrl+alt+shift+m
+      #comma: ctrl+alt+shift+comma # tricky case!!!
+      period: ctrl+alt+shift+.
+      slash: ctrl+alt+shift+/
+      square_bracket_open: ctrl+alt+shift+[
+      square_bracket_close: ctrl+alt+shift+]
+      backslash: ctrl+alt+shift+\
+
+  # In FIRST_STEPS but never given bindings. They still consume the next
+  # keystroke, so they stay listed until deliberately removed.
+  s:
+  u:

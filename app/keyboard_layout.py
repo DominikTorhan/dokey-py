@@ -223,36 +223,46 @@ def describe(send: Optional[List[Keys]]) -> str:
 TABS = ("special", "common")
 
 
-def _controls(config):
-    """Caps-held keys handled by process() before the "special:" section.
+# Display strings for the control keys. Wording is UI, so it lives here rather
+# than in the config file; the *order* is not, and comes from Config.CONTROL_KEYS
+# so the overlay and KeyProcessor cannot disagree about which control wins a key
+# two of them share.
+CONTROL_LABELS = {
+    "help": ("help", ""),
+    "diagnostic": ("diag", "overlay"),
+    "keyboard": ("keys", "sheet"),
+    "off_mode": ("off", "mode"),
+    "change_mode": ("mode", "next"),
+    "mouse_mode": ("mouse", "mode"),
+    "exit": ("exit", "DoKey"),
+    "clear_screen": ("clear", "screen"),
+}
 
-    Order matters here the same way it does in KeyProcessor: help, diagnostics
-    and the cheat-sheet key are reached first, then the mode keys in
-    _try_process_mode_change's own order (off, change, mouse), then exit and
-    clear-screen. Anything in this map wins over a "special:" entry on the same
-    key, and setdefault keeps the first writer - so if two controls are bound to
-    one key, the overlay names the same winner the code picks.
+
+def _controls(config):
+    """Caps-held keys handled by process() before the "special:" layer.
+
+    setdefault keeps the first writer, and Config.CONTROL_KEYS is in the order
+    process() reaches them - so if two controls are bound to one key, the
+    overlay names the same winner the code picks.
     """
-    described = [
-        (config.help_key, "help", ""),
-        (config.diagnostic_key, "diag", "overlay"),
-        (config.keyboard_key, "keys", "this sheet"),
-        (config.off_mode_key, "off", "mode"),
-        (config.change_mode_key, "mode", "next"),
-        (config.mouse_mode_key, "mouse", "mode"),
-        (config.exit_key, "exit", "DoKey"),
-        (config.clear_screen_key, "clear", "screen"),
-    ]
     controls = {}
-    for key, text, detail in described:
-        if key is not None and key != Keys.NONE:
-            controls.setdefault(key, (text, detail))
+    for name, attribute in Config.CONTROL_KEYS:
+        key = getattr(config, attribute, None)
+        if key is not None and key != Keys.NONE and name in CONTROL_LABELS:
+            controls.setdefault(key, CONTROL_LABELS[name])
     return controls
 
 
 def _prefix_detail(config, key):
-    """How many two-step bindings hang off a first step, and of what kind."""
+    """How many two-step bindings hang off a first step, and what they are.
+
+    A section that gives itself a title in the config says that instead of the
+    kinds: "F-KEYS" is a better cap than "KEYS", and it is the one piece of the
+    overlay's wording the keymap gets to choose.
+    """
     entries = config.two_step_events.get(key) or {}
+    title = config.titles.get(f"two_step.{_name(key)}") if key is not None else None
     kinds = set()
     for event in entries.values():
         if isinstance(event, CMDEvent):
@@ -263,6 +273,8 @@ def _prefix_detail(config, key):
             kinds.add("text")
         else:
             kinds.add("keys")
+    if title:
+        return len(entries), title
     if not kinds:
         return len(entries), "empty"
     # "cmd/keys/text" is wider than a cap; two kinds still fit, three do not,
@@ -319,7 +331,7 @@ def build(config: Config, tab: str = TABS[0]) -> List[List[KeyCap]]:
                 role = "control"
             elif tab == "special":
                 text = describe(config.special.get(key))
-            elif key is not None and key.is_first_step():
+            elif key is not None and config.is_first_step(key):
                 count, kinds = _prefix_detail(config, key)
                 text, detail, role = f"\u25b8 {count}", kinds, "prefix"
             else:
