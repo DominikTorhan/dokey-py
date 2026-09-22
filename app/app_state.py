@@ -21,3 +21,6 @@ class AppState:
         # index into app.keyboard_layout.TABS; an int keeps AppState free of
         # any dependency on the drawing side
         self.keyboard_tab: int = 0
+        self.window_list_active = False
+        self.window_list_revision = 0
+        self.window_list_scroll = 1

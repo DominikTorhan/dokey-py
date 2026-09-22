@@ -51,6 +51,7 @@ playlist:
   - {input: "1,,s z down", output: "1||s|*||PREV"}
   - {input: "1,,s x down", output: "1||s|*||PREV"}
   - {input: "1,,s s down", output: "1||s|||PREV|clear_screen"} # s is clear_screen_key
+  - {input: "1,,s square_bracket_close down", output: "1||s|*||PREV", binding: control.window_list, action: window_list}
 
   # single step
   - {input: "1,, h down", output: "1||||left|PREV"}

@@ -71,6 +71,11 @@ class KeyProcessor:
         if event:
             return event
 
+        # experimental open-window inventory
+        event = self._process_window_list(key, is_key_up)
+        if event:
+            return event
+
         if is_key_up:
             return Event()
 
@@ -205,8 +210,50 @@ class KeyProcessor:
             return None
 
         self.state.keyboard_active = True
+        self.state.window_list_active = False
         self.state.prevent_prev_mode_on_special_up = True
         return self._tag(Event(True), "control.keyboard", "keyboard")
+
+    def _process_window_list(self, key: Keys, is_key_up: bool) -> Optional[Event]:
+        """Special + ] opens or refreshes the POC; a bare ESC closes it."""
+        if is_key_up:
+            return None
+
+        if self.state.window_list_active:
+            if key == self.config.exit_key and not self.state.is_special_down:
+                self.state.window_list_active = False
+                self.state.window_list_scroll = 1
+                return self._tag(Event(True), "control.window_list", "window_list")
+            if self.state.is_special_down and key == Keys.SQUARE_BRACKET_CLOSE:
+                self.state.window_list_revision += 1
+                return self._tag(Event(True), "control.window_list", "window_list")
+            scroll = {
+                Keys.UP: -3,
+                Keys.DOWN: 3,
+                Keys.PAGE_UP: -20,
+                Keys.PAGE_DOWN: 20,
+                Keys.HOME: -1000000,
+                Keys.END: 1000000,
+            }.get(key)
+            if scroll is not None:
+                self.state.window_list_scroll = max(
+                    1, self.state.window_list_scroll + scroll
+                )
+                return self._tag(
+                    Event(True), "control.window_list_scroll", "window_list"
+                )
+            return None
+
+        if not self.state.is_special_down or key != Keys.SQUARE_BRACKET_CLOSE:
+            return None
+
+        self.state.window_list_active = True
+        self.state.keyboard_active = False
+        self.state.keyboard_tab = 0
+        self.state.window_list_revision += 1
+        self.state.window_list_scroll = 1
+        self.state.prevent_prev_mode_on_special_up = True
+        return self._tag(Event(True), "control.window_list", "window_list")
 
     def _try_process_single_step(self, key: Keys) -> Optional[Event]:
         if self.state.is_special_down or self.state.modifs.win:
@@ -244,6 +291,7 @@ class KeyProcessor:
             action = {
                 "SendEvent": "keys",
                 "CMDEvent": "command",
+                "FocusWindowEvent": "focus",
                 "WriteEvent": "text",
             }[type(event).__name__]
             return self._tag(event, binding, action)

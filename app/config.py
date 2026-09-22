@@ -6,7 +6,14 @@ from typing import Dict, Union, Optional
 
 from app import yaml_lite
 
-from app.events import SendEvent, CMDEvent, WriteEvent, Event, EventLike
+from app.events import (
+    SendEvent,
+    CMDEvent,
+    FocusWindowEvent,
+    WriteEvent,
+    Event,
+    EventLike,
+)
 from app.keys import Keys, string_to_multi_keys
 
 logger = logging.getLogger(__name__)
@@ -105,6 +112,19 @@ class Config:
         if val.startswith("__command__"):
             cmd = val.replace("__command__", "").lstrip("<").rstrip(">")
             return CMDEvent(cmd=cmd)
+        if val.startswith("__focus__"):
+            target = val[len("__focus__") :].lstrip("<").rstrip(">")
+            try:
+                process, title_prefix = target.split("::", 1)
+            except ValueError as error:
+                raise ValueError(
+                    "__focus__ requires process.exe::title prefix"
+                ) from error
+            process = process.strip()
+            title_prefix = title_prefix.strip()
+            if not process or not title_prefix:
+                raise ValueError("__focus__ process and title prefix cannot be empty")
+            return FocusWindowEvent(process, title_prefix)
         if val.startswith("__write__"):
             text = val.replace("__write__", "").lstrip("<").rstrip(">")
             return WriteEvent(text=text)

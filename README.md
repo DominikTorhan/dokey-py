@@ -77,6 +77,20 @@ python tools/keyboard_preview.py --tab common
 - `app/mouse_config.yaml` – coordinates for the mouse mode.
 - Optional user overrides can be placed in `~/.dokey/user_config.yaml`.
 
+Use `__focus__<process.exe::title prefix>` in a two-step mapping to activate an
+existing window. Both comparisons are case-insensitive; the executable name must
+match exactly, while the title only has to start with the configured text:
+
+```yaml
+a:
+  d1: __focus__<wezterm-gui.exe::A |>
+  d2: __focus__<wezterm-gui.exe::T |>
+```
+
+The first matching window in the current Z-order is restored if minimized and
+then activated. Windows can refuse foreground activation in some circumstances;
+that failure is logged and does not run a new application instance.
+
 ## Local usage logs
 
 DoKey writes local diagnostics and usage data under `logs/`. It sends no telemetry.
@@ -121,7 +135,8 @@ that DoKey passes through are not recorded. Caps Lock bypass also isn't measured
 Session records and summaries contain the configured binding IDs and their
 action types, plus which overlays are enabled. The fingerprint includes loaded
 user overrides and mouse positions, but its source data is not written out.
-Text-expansion contents and command lines are never included in usage records.
+Text-expansion contents, command lines, and window-focus targets are never
+included in usage records.
 
 Other events record mode changes (`0` Off, `1` Normal, `2` Insert, `3` Mouse),
 overlay visibility changes after their UI callbacks return, and command launch

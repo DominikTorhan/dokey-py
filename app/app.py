@@ -7,7 +7,7 @@ from typing import Callable
 
 from app.app_state import AppState, NORMAL, MOUSE
 from app.config import Config
-from app.events import Event, CMDEvent, DoKeyEvent, EventLike
+from app.events import Event, CMDEvent, FocusWindowEvent, DoKeyEvent, EventLike
 from app.key_processor import KeyProcessor
 from app.keyboard_layout import TABS
 from app.keys import Keys
@@ -49,6 +49,17 @@ class KeyboardInterface:
         self.hide = hide
 
 
+class WindowListInterface:
+    def __init__(self, show, hide):
+        self.show = show
+        self.hide = hide
+
+
+class WindowFocusInterface:
+    def __init__(self, focus):
+        self.focus = focus
+
+
 class OSEvent:
     def __init__(self):
         self.key: Keys = Keys.NONE
@@ -75,6 +86,8 @@ class App:
         mouse_interface: MouseInterface = None,
         diagnostics_interface: DiagnosticsInterface = None,
         keyboard_interface: KeyboardInterface = None,
+        window_list_interface: WindowListInterface = None,
+        window_focus_interface: WindowFocusInterface = None,
     ):
         self.config: Config = Config.from_file(config_path)
         self.mouse_config: MouseConfig = MouseConfig.from_file(mouse_config_path)
@@ -84,6 +97,8 @@ class App:
         self.mouse_interface = mouse_interface
         self.diagnostics_interface = diagnostics_interface
         self.keyboard_interface = keyboard_interface
+        self.window_list_interface = window_list_interface
+        self.window_focus_interface = window_focus_interface
         self.state = AppState()
         self.state.mode = NORMAL
         self.processor: KeyProcessor = KeyProcessor(
@@ -97,6 +112,7 @@ class App:
             "mouse": False,
             "diagnostics": False,
             "keyboard": False,
+            "window_list": False,
         }
 
     def main(self):
@@ -113,6 +129,8 @@ class App:
                 "mouse_overlay": self.mouse_interface is not None,
                 "diagnostics": self.diagnostics_interface is not None,
                 "keyboard": self.keyboard_interface is not None,
+                "window_list": self.window_list_interface is not None,
+                "window_focus": self.window_focus_interface is not None,
             },
         )
         self.worker = threading.Thread(
@@ -192,7 +210,15 @@ class App:
         diagnostic_active = self.state.diagnostic_active
         keyboard_active = self.state.keyboard_active
         keyboard_tab = self.state.keyboard_tab
+        window_list_active = self.state.window_list_active
+        window_list_revision = self.state.window_list_revision
+        window_list_scroll = self.state.window_list_scroll
         cmd = event.cmd if isinstance(event, CMDEvent) else None
+        focus_target = (
+            (event.process, event.title_prefix)
+            if isinstance(event, FocusWindowEvent)
+            else None
+        )
         binding = self.processor.binding_id
         clear_screen = (
             isinstance(event, DoKeyEvent) and event.event_type == "clear_screen"
@@ -205,6 +231,8 @@ class App:
                 self.mouse_interface,
                 self.diagnostics_interface,
                 self.keyboard_interface,
+                self.window_list_interface,
+                self.window_focus_interface,
             ]
         )
         if not has_ui and not cmd:
@@ -221,6 +249,10 @@ class App:
                 binding,
                 keyboard_active,
                 keyboard_tab,
+                window_list_active,
+                window_list_revision,
+                window_list_scroll,
+                focus_target,
             )
         )
 
@@ -235,6 +267,10 @@ class App:
         binding=None,
         keyboard_active=False,
         keyboard_tab=0,
+        window_list_active=False,
+        window_list_revision=0,
+        window_list_scroll=1,
+        focus_target=None,
     ):
         if self.tray_app_interface:
             self.tray_app_interface.set_icon(mode, first_step)
@@ -267,9 +303,22 @@ class App:
                 self.keyboard_interface.hide()
             self._record_overlay("keyboard", keyboard_active)
 
+        if self.window_list_interface:
+            if window_list_active:
+                self.window_list_interface.show(
+                    window_list_revision, window_list_scroll
+                )
+            else:
+                self.window_list_interface.hide()
+            self._record_overlay("window_list", window_list_active)
+
         if clear_screen and self.mouse_interface:
             self.mouse_interface.clear()
             self._record_overlay("mouse", False)
+
+        if focus_target and self.window_focus_interface:
+            success = self.window_focus_interface.focus(*focus_target)
+            usage.record("window_focus", binding=binding, success=bool(success))
 
         # Execute custom command
         if cmd:

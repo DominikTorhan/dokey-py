@@ -12,6 +12,8 @@ from app.app import (
     MouseInterface,
     DiagnosticsInterface,
     KeyboardInterface,
+    WindowListInterface,
+    WindowFocusInterface,
 )
 from app.app_state import NORMAL, INSERT, MOUSE
 from app.keyboard_layout import build as build_keyboard_layout
@@ -110,6 +112,7 @@ if __name__ == "__main__":
     )  # no graphics mode
     args = parser.parse_args()
     from os_level.win_keyboard import WindowsListener
+    from os_level.window_inventory import focus_window
 
     init_logging()
     config_path = str(root / "app" / "config.yaml")
@@ -122,6 +125,8 @@ if __name__ == "__main__":
         from os_level.draw_on_screen import WinImage
         from os_level.keyboard_window import KeyboardWindow
         from os_level.mouse_window import MouseImage
+        from os_level.window_inventory import snapshot as window_snapshot
+        from os_level.window_list_window import WindowListWindow
 
         win_image = WinImage()
         mouse_image = MouseImage(mouse_config_path)
@@ -140,6 +145,7 @@ if __name__ == "__main__":
         tray_app_interface=tray_app_interface,
         help_interface=help,
         mouse_interface=mouse,
+        window_focus_interface=WindowFocusInterface(focus_window),
     )
     if not args.plain:
         # Attached after App exists rather than passed in: DiagnosticWindow
@@ -158,6 +164,10 @@ if __name__ == "__main__":
         )
         app.keyboard_interface = KeyboardInterface(
             show=keyboard_window.show, hide=keyboard_window.clear
+        )
+        window_list = WindowListWindow(window_snapshot)
+        app.window_list_interface = WindowListInterface(
+            show=window_list.show, hide=window_list.clear
         )
     try:
         app.main()
