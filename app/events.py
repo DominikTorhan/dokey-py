@@ -4,7 +4,7 @@ from app.keys import Keys
 
 
 class Event:
-    """Event types: SendEvent, WriteEvent, MouseEvent, DoKeyEvent (e.g. exit), CMDEvent"""
+    """Base event for actions that only suppress the original keystroke."""
 
     def __init__(self, prevent_key_process: bool = False, mouse=False):
         self.prevent_key_process: bool = (
@@ -25,6 +25,13 @@ class CMDEvent:
         self.cmd: str = cmd
 
 
+class FocusWindowEvent(Event):
+    def __init__(self, process: str, title_prefix: str):
+        super().__init__(prevent_key_process=True)
+        self.process = process
+        self.title_prefix = title_prefix
+
+
 class DoKeyEvent:
     def __init__(self, event_type: str):
         # Exit or clear screen
@@ -42,4 +49,12 @@ class MouseEvent:
         self.ry = ry
 
 
-EventLike = Union[Event, SendEvent, CMDEvent, DoKeyEvent, WriteEvent, MouseEvent]
+EventLike = Union[
+    Event,
+    SendEvent,
+    CMDEvent,
+    FocusWindowEvent,
+    DoKeyEvent,
+    WriteEvent,
+    MouseEvent,
+]

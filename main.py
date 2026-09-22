@@ -12,6 +12,7 @@ from app.app import (
     MouseInterface,
     DiagnosticsInterface,
     KeyboardInterface,
+    WindowFocusInterface,
 )
 from app.app_state import NORMAL, INSERT, MOUSE
 from app.keyboard_layout import build as build_keyboard_layout
@@ -110,6 +111,7 @@ if __name__ == "__main__":
     )  # no graphics mode
     args = parser.parse_args()
     from os_level.win_keyboard import WindowsListener
+    from os_level.window_focus import focus_window
 
     init_logging()
     config_path = str(root / "app" / "config.yaml")
@@ -140,6 +142,7 @@ if __name__ == "__main__":
         tray_app_interface=tray_app_interface,
         help_interface=help,
         mouse_interface=mouse,
+        window_focus_interface=WindowFocusInterface(focus_window),
     )
     if not args.plain:
         # Attached after App exists rather than passed in: DiagnosticWindow

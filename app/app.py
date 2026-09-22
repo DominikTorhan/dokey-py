@@ -7,7 +7,7 @@ from typing import Callable
 
 from app.app_state import AppState, NORMAL, MOUSE
 from app.config import Config
-from app.events import Event, CMDEvent, DoKeyEvent, EventLike
+from app.events import Event, CMDEvent, FocusWindowEvent, DoKeyEvent, EventLike
 from app.key_processor import KeyProcessor
 from app.keyboard_layout import TABS
 from app.keys import Keys
@@ -49,6 +49,11 @@ class KeyboardInterface:
         self.hide = hide
 
 
+class WindowFocusInterface:
+    def __init__(self, focus):
+        self.focus = focus
+
+
 class OSEvent:
     def __init__(self):
         self.key: Keys = Keys.NONE
@@ -75,6 +80,7 @@ class App:
         mouse_interface: MouseInterface = None,
         diagnostics_interface: DiagnosticsInterface = None,
         keyboard_interface: KeyboardInterface = None,
+        window_focus_interface: WindowFocusInterface = None,
     ):
         self.config: Config = Config.from_file(config_path)
         self.mouse_config: MouseConfig = MouseConfig.from_file(mouse_config_path)
@@ -84,6 +90,7 @@ class App:
         self.mouse_interface = mouse_interface
         self.diagnostics_interface = diagnostics_interface
         self.keyboard_interface = keyboard_interface
+        self.window_focus_interface = window_focus_interface
         self.state = AppState()
         self.state.mode = NORMAL
         self.processor: KeyProcessor = KeyProcessor(
@@ -113,6 +120,7 @@ class App:
                 "mouse_overlay": self.mouse_interface is not None,
                 "diagnostics": self.diagnostics_interface is not None,
                 "keyboard": self.keyboard_interface is not None,
+                "window_focus": self.window_focus_interface is not None,
             },
         )
         self.worker = threading.Thread(
@@ -193,6 +201,11 @@ class App:
         keyboard_active = self.state.keyboard_active
         keyboard_tab = self.state.keyboard_tab
         cmd = event.cmd if isinstance(event, CMDEvent) else None
+        focus_target = (
+            (event.process, event.title_prefix)
+            if isinstance(event, FocusWindowEvent) and self.window_focus_interface
+            else None
+        )
         binding = self.processor.binding_id
         clear_screen = (
             isinstance(event, DoKeyEvent) and event.event_type == "clear_screen"
@@ -207,7 +220,7 @@ class App:
                 self.keyboard_interface,
             ]
         )
-        if not has_ui and not cmd:
+        if not has_ui and not cmd and not focus_target:
             return
 
         self.side_effects.put(
@@ -221,6 +234,7 @@ class App:
                 binding,
                 keyboard_active,
                 keyboard_tab,
+                focus_target,
             )
         )
 
@@ -235,6 +249,7 @@ class App:
         binding=None,
         keyboard_active=False,
         keyboard_tab=0,
+        focus_target=None,
     ):
         if self.tray_app_interface:
             self.tray_app_interface.set_icon(mode, first_step)
@@ -270,6 +285,10 @@ class App:
         if clear_screen and self.mouse_interface:
             self.mouse_interface.clear()
             self._record_overlay("mouse", False)
+
+        if focus_target:
+            success = self.window_focus_interface.focus(*focus_target)
+            usage.record("window_focus", binding=binding, success=bool(success))
 
         # Execute custom command
         if cmd:
