@@ -1,5 +1,6 @@
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 from app.config import Config
 from app.keyboard_layout import (
@@ -26,7 +27,8 @@ EXCLUDED = [
 
 class TestLayout(unittest.TestCase):
     def setUp(self):
-        self.config = Config.from_file(CONFIG_PATH)
+        with patch.object(Config, "try_load_users_config"):
+            self.config = Config.from_file(CONFIG_PATH)
         self.rows = build(self.config)
 
     def caps(self, tab=TABS[0]):
@@ -82,7 +84,8 @@ class TestLayout(unittest.TestCase):
 
 class TestTabs(unittest.TestCase):
     def setUp(self):
-        self.config = Config.from_file(CONFIG_PATH)
+        with patch.object(Config, "try_load_users_config"):
+            self.config = Config.from_file(CONFIG_PATH)
 
     def caps(self, tab):
         return {cap.key: cap for row in build(self.config, tab) for cap in row}

@@ -244,6 +244,7 @@ class KeyProcessor:
             action = {
                 "SendEvent": "keys",
                 "CMDEvent": "command",
+                "FocusWindowEvent": "focus",
                 "WriteEvent": "text",
             }[type(event).__name__]
             return self._tag(event, binding, action)

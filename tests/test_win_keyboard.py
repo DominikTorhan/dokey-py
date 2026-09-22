@@ -6,7 +6,7 @@ import unittest
 from pathlib import Path
 from unittest.mock import Mock, patch
 
-from app.events import SendEvent
+from app.events import FocusWindowEvent, SendEvent
 from app.keys import Keys, string_to_multi_keys
 
 
@@ -59,6 +59,11 @@ class TestWindowsKeyboard(unittest.TestCase):
                 ],
             ],
         )
+
+    def test_focus_event_is_swallowed_without_work_on_hook_thread(self):
+        listener = self.keyboard.WindowsListener()
+        event = FocusWindowEvent("wezterm-gui.exe", "A |")
+        self.assertTrue(listener._perform(event))
 
     def test_execution_failure_passes_original_key_to_next_hook(self):
         keyboard = self.keyboard

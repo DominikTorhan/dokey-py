@@ -6,7 +6,14 @@ from typing import Dict, Union, Optional
 
 from app import yaml_lite
 
-from app.events import SendEvent, CMDEvent, WriteEvent, Event, EventLike
+from app.events import (
+    SendEvent,
+    CMDEvent,
+    FocusWindowEvent,
+    WriteEvent,
+    Event,
+    EventLike,
+)
 from app.keys import Keys, string_to_multi_keys
 
 logger = logging.getLogger(__name__)
@@ -101,10 +108,12 @@ class Config:
         return SendEvent(send=send)
 
     @staticmethod
-    def _parse_config_value_to_event(val: str) -> EventLike:
+    def _parse_config_value_to_event(val: str) -> Optional[EventLike]:
         if val.startswith("__command__"):
             cmd = val.replace("__command__", "").lstrip("<").rstrip(">")
             return CMDEvent(cmd=cmd)
+        if val.startswith("__focus__"):
+            return Config._parse_focus(val)
         if val.startswith("__write__"):
             text = val.replace("__write__", "").lstrip("<").rstrip(">")
             return WriteEvent(text=text)
@@ -112,10 +121,27 @@ class Config:
         return SendEvent(send=send)
 
     @staticmethod
+    def _parse_focus(val: str) -> Optional[FocusWindowEvent]:
+        # a bad target is logged and the binding dropped: a typo in
+        # user_config.yaml must not stop DoKey from starting
+        target = val[len("__focus__") :].lstrip("<").rstrip(">")
+        process, separator, title_prefix = target.partition("::")
+        process = process.strip()
+        title_prefix = title_prefix.strip()
+        if not separator or not process or not title_prefix:
+            logger.error(
+                "Invalid %r: __focus__ requires <process.exe::title prefix>", val
+            )
+            return None
+        return FocusWindowEvent(process, title_prefix)
+
+    @staticmethod
     def _convert_dict_events(d: Dict[str, str]) -> Dict[Keys, EventLike]:
         result = {}
         for key in d:
-            result[Keys.from_string(key)] = Config._parse_config_value_to_event(d[key])
+            event = Config._parse_config_value_to_event(d[key])
+            if event is not None:
+                result[Keys.from_string(key)] = event
         return result
 
     def get_single_step_send_event(self, key: Keys) -> Optional[SendEvent]:

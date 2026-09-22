@@ -57,7 +57,7 @@ app/                          pure logic, no Windows API — this is the testabl
   mouse_config.py             MouseConfig.from_file(): mouse grid positions
   keys.py                     Keys enum (values are Windows VK codes), name↔key map, FIRST_STEPS
   keyboard_layout.py          ANSI cap rows + per-tab binding text for the cheat sheet
-  events.py                   Event / SendEvent / WriteEvent / CMDEvent / DoKeyEvent / MouseEvent
+  events.py                   Event / SendEvent / WriteEvent / CMDEvent / FocusWindowEvent / DoKeyEvent / MouseEvent
   modifs.py                   Modifs: ctrl/shift/alt/win flags
   version.py                  VERSION - single source of truth
   yaml_lite.py                minimal YAML reader for the config subset
@@ -66,6 +66,7 @@ app/                          pure logic, no Windows API — this is the testabl
 os_level/                     Windows-specific, not importable off Windows
   win_keyboard.py             WindowsListener: WH_KEYBOARD_LL hook, SendInput, mouse click
   windows_api.py              active window/process via user32 + dwmapi + kernel32 (ctypes only)
+  window_focus.py             focus_window(): __focus__ target lookup + SetForegroundWindow
   draw_on_screen.py           WinImage: Tk help overlay (per active process)
   mouse_window.py             MouseImage: Tk mouse-grid overlay + coordinate math
   diagnostic_window.py        DiagnosticWindow: Tk state overlay
@@ -157,6 +158,11 @@ Value syntax:
 - `up, end, enter` — a sequence of chords, sent in order
 - `__command__<some command line>` — launched with `subprocess.Popen(shell=True)`
 - `__write__<text>` — types the text literally
+- `__focus__<process.exe::title prefix>` — activates the first window (Z-order)
+  whose executable matches exactly and whose title starts with the prefix, both
+  case-insensitive; runs on the worker thread, never launches anything. A
+  malformed value is logged and the binding dropped rather than failing startup.
+  The target is never written to the usage records.
 
 User overrides: `~/.dokey/user_config.yaml`, merged into two-step
 sections only (`Config.try_load_users_config`). `~/.dokey/help.yaml`
