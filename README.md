@@ -91,6 +91,20 @@ The first matching window in the current Z-order is restored if minimized and
 then activated. Windows can refuse foreground activation in some circumstances;
 that failure is logged and does not run a new application instance.
 
+Use `__focus_or_launch__<process.exe::AppUserModelID::command>` when windows
+from one executable need a more precise identity. DoKey focuses the first
+matching Alt+Tab window in Z-order and runs the command only when none exists:
+
+```yaml
+a:
+  o: __focus_or_launch__<chrome.exe::Chrome.UserData.Profile2::start chrome --profile-directory="Profile 2" --no-default-browser-check>
+```
+
+The process name and AppUserModelID comparisons are case-insensitive. Detection,
+activation, and fallback launch all run on the side-effect worker thread. Chrome
+currently exposes `Chrome` for `Default` and `Chrome.UserData.ProfileN` for a
+profile directory named `Profile N`.
+
 ## Local usage logs
 
 DoKey writes local diagnostics and usage data under `logs/`. It sends no telemetry.

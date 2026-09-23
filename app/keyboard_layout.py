@@ -25,7 +25,7 @@ keymap that is actually loaded, user overrides included.
 from typing import List, NamedTuple, Optional
 
 from app.config import Config
-from app.events import CMDEvent, FocusWindowEvent, WriteEvent
+from app.events import CMDEvent, FocusOrLaunchEvent, FocusWindowEvent, WriteEvent
 from app.keys import Keys
 
 # Widths are in key units: 1.0 is a letter key, and every row sums to 15.0.
@@ -257,7 +257,7 @@ def _prefix_detail(config, key):
     for event in entries.values():
         if isinstance(event, CMDEvent):
             kinds.add("cmd")
-        elif isinstance(event, FocusWindowEvent):
+        elif isinstance(event, (FocusWindowEvent, FocusOrLaunchEvent)):
             kinds.add("focus")
         elif isinstance(event, WriteEvent):
             kinds.add("text")

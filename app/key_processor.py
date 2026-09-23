@@ -245,6 +245,7 @@ class KeyProcessor:
                 "SendEvent": "keys",
                 "CMDEvent": "command",
                 "FocusWindowEvent": "focus",
+                "FocusOrLaunchEvent": "focus_or_launch",
                 "WriteEvent": "text",
             }[type(event).__name__]
             return self._tag(event, binding, action)

@@ -10,6 +10,7 @@ from app.events import (
     SendEvent,
     CMDEvent,
     FocusWindowEvent,
+    FocusOrLaunchEvent,
     WriteEvent,
     Event,
     EventLike,
@@ -114,6 +115,8 @@ class Config:
             return CMDEvent(cmd=cmd)
         if val.startswith("__focus__"):
             return Config._parse_focus(val)
+        if val.startswith("__focus_or_launch__"):
+            return Config._parse_focus_or_launch(val)
         if val.startswith("__write__"):
             text = val.replace("__write__", "").lstrip("<").rstrip(">")
             return WriteEvent(text=text)
@@ -134,6 +137,29 @@ class Config:
             )
             return None
         return FocusWindowEvent(process, title_prefix)
+
+    @staticmethod
+    def _parse_focus_or_launch(val: str) -> Optional[FocusOrLaunchEvent]:
+        target = val[len("__focus_or_launch__") :].lstrip("<").rstrip(">")
+        process, separator, remainder = target.partition("::")
+        app_id, command_separator, cmd = remainder.partition("::")
+        process = process.strip()
+        app_id = app_id.strip()
+        cmd = cmd.strip()
+        if (
+            not separator
+            or not command_separator
+            or not process
+            or not app_id
+            or not cmd
+        ):
+            logger.error(
+                "Invalid %r: __focus_or_launch__ requires "
+                "<process.exe::AppUserModelID::command>",
+                val,
+            )
+            return None
+        return FocusOrLaunchEvent(process, app_id, cmd)
 
     @staticmethod
     def _convert_dict_events(d: Dict[str, str]) -> Dict[Keys, EventLike]:

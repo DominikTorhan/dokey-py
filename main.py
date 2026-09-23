@@ -111,7 +111,7 @@ if __name__ == "__main__":
     )  # no graphics mode
     args = parser.parse_args()
     from os_level.win_keyboard import WindowsListener
-    from os_level.window_focus import focus_window
+    from os_level.window_focus import focus_or_launch, focus_window
 
     init_logging()
     config_path = str(root / "app" / "config.yaml")
@@ -142,7 +142,7 @@ if __name__ == "__main__":
         tray_app_interface=tray_app_interface,
         help_interface=help,
         mouse_interface=mouse,
-        window_focus_interface=WindowFocusInterface(focus_window),
+        window_focus_interface=WindowFocusInterface(focus_window, focus_or_launch),
     )
     if not args.plain:
         # Attached after App exists rather than passed in: DiagnosticWindow
