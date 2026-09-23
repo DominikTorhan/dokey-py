@@ -7,7 +7,14 @@ from typing import Callable
 
 from app.app_state import AppState, NORMAL, MOUSE
 from app.config import Config
-from app.events import Event, CMDEvent, FocusWindowEvent, DoKeyEvent, EventLike
+from app.events import (
+    Event,
+    CMDEvent,
+    FocusOrLaunchEvent,
+    FocusWindowEvent,
+    DoKeyEvent,
+    EventLike,
+)
 from app.key_processor import KeyProcessor
 from app.keyboard_layout import TABS
 from app.keys import Keys
@@ -50,8 +57,9 @@ class KeyboardInterface:
 
 
 class WindowFocusInterface:
-    def __init__(self, focus):
+    def __init__(self, focus, focus_or_launch=None):
         self.focus = focus
+        self.focus_or_launch = focus_or_launch
 
 
 class OSEvent:
@@ -206,6 +214,13 @@ class App:
             if isinstance(event, FocusWindowEvent) and self.window_focus_interface
             else None
         )
+        focus_or_launch_target = (
+            (event.process, event.app_id, event.cmd)
+            if isinstance(event, FocusOrLaunchEvent)
+            and self.window_focus_interface
+            and self.window_focus_interface.focus_or_launch
+            else None
+        )
         binding = self.processor.binding_id
         clear_screen = (
             isinstance(event, DoKeyEvent) and event.event_type == "clear_screen"
@@ -220,7 +235,12 @@ class App:
                 self.keyboard_interface,
             ]
         )
-        if not has_ui and not cmd and not focus_target:
+        if (
+            not has_ui
+            and not cmd
+            and not focus_target
+            and not focus_or_launch_target
+        ):
             return
 
         self.side_effects.put(
@@ -235,6 +255,7 @@ class App:
                 keyboard_active,
                 keyboard_tab,
                 focus_target,
+                focus_or_launch_target,
             )
         )
 
@@ -250,6 +271,7 @@ class App:
         keyboard_active=False,
         keyboard_tab=0,
         focus_target=None,
+        focus_or_launch_target=None,
     ):
         if self.tray_app_interface:
             self.tray_app_interface.set_icon(mode, first_step)
@@ -289,6 +311,17 @@ class App:
         if focus_target:
             success = self.window_focus_interface.focus(*focus_target)
             usage.record("window_focus", binding=binding, success=bool(success))
+
+        if focus_or_launch_target:
+            result = self.window_focus_interface.focus_or_launch(
+                *focus_or_launch_target
+            )
+            usage.record(
+                "window_focus_or_launch",
+                binding=binding,
+                success=bool(result),
+                result=result or "failed",
+            )
 
         # Execute custom command
         if cmd:

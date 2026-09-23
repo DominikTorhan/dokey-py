@@ -13,12 +13,14 @@ class TestWindowFocusOS(unittest.TestCase):
         cls.focus = importlib.util.module_from_spec(spec)
         cls.user32 = Mock()
         dwmapi = Mock()
+        cls.shell32 = Mock()
+        cls.ole32 = Mock()
         windows_api = Mock()
         with (
             patch.object(
                 ctypes,
                 "WinDLL",
-                side_effect=[cls.user32, dwmapi],
+                side_effect=[cls.user32, dwmapi, cls.shell32, cls.ole32],
                 create=True,
             ),
             patch.object(ctypes, "WINFUNCTYPE", ctypes.CFUNCTYPE, create=True),
@@ -96,6 +98,89 @@ class TestWindowFocusOS(unittest.TestCase):
         self.assertFalse(success)
         get_process_name.assert_not_called()
         user32.SetForegroundWindow.assert_not_called()
+
+    def test_focus_or_launch_matches_process_and_app_id_in_z_order(self):
+        focus = self.focus
+        user32 = self.user32
+
+        def enumerate_windows(callback, lparam):
+            for hwnd in (101, 202, 303):
+                if not callback(hwnd, lparam):
+                    return False
+            return True
+
+        def set_pid(hwnd, pid_pointer):
+            pid_pointer._obj.value = hwnd
+            return 1
+
+        user32.reset_mock()
+        user32.EnumWindows.side_effect = enumerate_windows
+        user32.GetWindowThreadProcessId.side_effect = set_pid
+        user32.IsIconic.return_value = False
+        user32.SetForegroundWindow.return_value = True
+        with (
+            patch.object(focus, "_window_text", return_value="Chrome"),
+            patch.object(focus, "_is_alt_tab_window", return_value=True),
+            patch.object(
+                focus,
+                "get_process_name",
+                side_effect=lambda pid: {
+                    101: "other.exe",
+                    202: "chrome.exe",
+                    303: "chrome.exe",
+                }[pid],
+            ),
+            patch.object(
+                focus,
+                "_window_app_id",
+                side_effect=lambda hwnd: {
+                    202: "Chrome.UserData.Profile4",
+                    303: "Chrome.UserData.Profile2",
+                }[hwnd],
+            ),
+            patch.object(focus.subprocess, "Popen") as popen,
+        ):
+            result = focus.focus_or_launch(
+                "CHROME.EXE", "chrome.userdata.profile2", "start chrome"
+            )
+
+        self.assertEqual("focused", result)
+        user32.SetForegroundWindow.assert_called_once_with(303)
+        popen.assert_not_called()
+
+    def test_focus_or_launch_launches_only_when_no_window_matches(self):
+        focus = self.focus
+        user32 = self.user32
+        user32.reset_mock()
+        user32.EnumWindows.side_effect = lambda callback, lparam: callback(
+            101, lparam
+        )
+        user32.GetWindowThreadProcessId.side_effect = (
+            lambda hwnd, pointer: setattr(pointer._obj, "value", hwnd) or 1
+        )
+        with (
+            patch.object(focus, "_window_text", return_value="Chrome"),
+            patch.object(focus, "_is_alt_tab_window", return_value=True),
+            patch.object(focus, "get_process_name", return_value="chrome.exe"),
+            patch.object(
+                focus, "_window_app_id", return_value="Chrome.UserData.Profile4"
+            ),
+            patch.object(focus.subprocess, "Popen") as popen,
+        ):
+            result = focus.focus_or_launch(
+                "chrome.exe", "Chrome.UserData.Profile2", "start chrome profile-2"
+            )
+
+        self.assertEqual("launched", result)
+        user32.SetForegroundWindow.assert_not_called()
+        popen.assert_called_once_with(
+            "start chrome profile-2",
+            shell=True,
+            stdin=focus.subprocess.DEVNULL,
+            stdout=focus.subprocess.DEVNULL,
+            stderr=focus.subprocess.DEVNULL,
+            creationflags=getattr(focus.subprocess, "CREATE_NO_WINDOW", 0),
+        )
 
 
 if __name__ == "__main__":
