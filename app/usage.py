@@ -9,7 +9,13 @@ from collections import Counter
 from datetime import date, datetime, timedelta, timezone
 from logging.handlers import TimedRotatingFileHandler
 
-from app.events import CMDEvent, FocusWindowEvent, SendEvent, WriteEvent
+from app.events import (
+    CMDEvent,
+    FocusOrLaunchEvent,
+    FocusWindowEvent,
+    SendEvent,
+    WriteEvent,
+)
 from app.keys import FIRST_STEPS, Keys
 from app.version import VERSION
 
@@ -68,6 +74,7 @@ def configuration(config, mouse_config):
                 SendEvent: "keys",
                 CMDEvent: "command",
                 FocusWindowEvent: "focus",
+                FocusOrLaunchEvent: "focus_or_launch",
                 WriteEvent: "text",
             }[type(event)]
             bindings[f"two_step.{first.name.lower()}.{key.name.lower()}"] = kind

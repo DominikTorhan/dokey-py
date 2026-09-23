@@ -32,6 +32,14 @@ class FocusWindowEvent(Event):
         self.title_prefix = title_prefix
 
 
+class FocusOrLaunchEvent(Event):
+    def __init__(self, process: str, app_id: str, cmd: str):
+        super().__init__(prevent_key_process=True)
+        self.process = process
+        self.app_id = app_id
+        self.cmd = cmd
+
+
 class DoKeyEvent:
     def __init__(self, event_type: str):
         # Exit or clear screen
@@ -54,6 +62,7 @@ EventLike = Union[
     SendEvent,
     CMDEvent,
     FocusWindowEvent,
+    FocusOrLaunchEvent,
     DoKeyEvent,
     WriteEvent,
     MouseEvent,
