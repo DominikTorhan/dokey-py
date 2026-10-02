@@ -6,7 +6,7 @@ logger = logging.getLogger(__name__)
 
 # Prefixes that mark a config value as something other than a key send. They
 # carry user content, so they are named but never echoed.
-VALUE_MARKERS = ("__write__", "__command__")
+VALUE_MARKERS = ("__write__", "__command__", "__focus__", "__focus_or_launch__")
 
 
 class Keys(Enum):
@@ -130,9 +130,9 @@ class Keys(Enum):
             # the binding in silence. Keep returning it - Keys.NONE would fold
             # the typo into the "no first step" section - but say so.
             #
-            # Values reach this function too, not just key names: a __write__ or
-            # __command__ entry put somewhere that only accepts key sends gets
-            # split and looked up here. Naming the marker instead of echoing it
+            # Values reach this function too, not just key names: a marker value
+            # (__write__, __command__, __focus__...) put somewhere that only
+            # accepts key sends gets split and looked up here. Naming the marker instead of echoing it
             # keeps a passphrase or a private URL out of the log.
             name = s.strip()
             marker = next((m for m in VALUE_MARKERS if name.startswith(m)), None)
