@@ -62,6 +62,7 @@ app/                          pure logic, no Windows API — this is the testabl
   version.py                  VERSION - single source of truth
   yaml_lite.py                minimal YAML reader for the config subset
   config.yaml                 the actual keymap
+  user_config.example.yaml    commented example of ~/.dokey/user_config.yaml (tracked)
   mouse_config.yaml           mouse grid: key -> [x%, y%] of the active window
 os_level/                     Windows-specific, not importable off Windows
   win_keyboard.py             WindowsListener: WH_KEYBOARD_LL hook, SendInput, mouse click
@@ -140,17 +141,31 @@ mode when Caps is released.
 
 ## config.yaml
 
-Top level:
+**Format version 2.** The file opens with `version: 2` and has exactly three
+top-level sections; anything else is a `ValueError` rather than a silent
+mistake:
 
-- `special_key`, `change_mode_key`, `off_mode_key`, `mouse_mode_key`,
-  `clear_screen_key`, `exit_key`, `help_key`, `diagnostic_key`, `keyboard_key`
-  (`keyboard_key` is the only one with a default — `apostrophe` — so a config
-  written before the cheat sheet existed still loads; every other name must be
-  popped, or it would be read as a two-step first step)
-- `special:` — mappings for *special key held* (works in Normal and Insert)
-- `common:` — single-key mappings, Normal mode only (hjkl arrows, etc.)
-- **every other top-level key is a two-step first step** (`f:`, `i:`, `d:`, `q:`,
-  `w:`, `e:`, `r:`, `t:`, `g:`, `b:`, `a:` …)
+- `keys:` — the control keys (`special`, `help`, `diagnostic`, `keyboard`,
+  `off_mode`, `change_mode`, `mouse_mode`, `exit`, `clear_screen`).
+  `Config.CONTROL_KEYS` lists them **in the order `process()` reaches them**,
+  and both the loader and the keyboard overlay read that one list.
+- `layers:` — `special:` (special key held, Normal and Insert) and `common:`
+  (single key, Normal only). Each is `{title?, bindings}`.
+- `two_step:` — first steps, each `{title?, bindings}`. **The sections here
+  *are* the first steps** (`Config.first_steps`); there is no second list to
+  keep in step. A section with no bindings is meaningful — it keeps the key
+  swallowing the next keystroke, which is what `s:` and `u:` do.
+
+`title:` is optional everywhere and presentation only: the keyboard overlay
+shows it instead of the binding kinds, so a section can read `▸16 F-KEYS`
+rather than `▸16 KEYS`. Nothing dispatches on it.
+
+**Version 1 files still load.** No `version:` key means the old flat layout,
+where `special:`/`common:` are known names and *every other top-level key is a
+first step*. `_load_v1` reproduces it exactly, including taking `first_steps`
+from the hand-maintained `FIRST_STEPS` in `keys.py` rather than from the
+sections — v1 semantics are that a section is dead unless the key is also in
+that list, and changing it there would alter behaviour on existing files.
 
 Value syntax:
 
@@ -164,16 +179,49 @@ Value syntax:
   malformed value is logged and the binding dropped rather than failing startup.
   The target is never written to the usage records.
 
-User overrides: `~/.dokey/user_config.yaml`, merged into two-step
-sections only (`Config.try_load_users_config`). `~/.dokey/help.yaml`
-holds the per-application help text shown by the help overlay, keyed by a
-substring of the active process name.
+User overrides: `~/.dokey/user_config.yaml` (`Config.try_load_users_config`),
+version-marked independently of `config.yaml` so the two can be migrated apart.
+A v2 override file can change control keys, either layer and any two-step
+section; a v1 one is two-step sections only, and still loads unchanged. A
+section named there that the base config lacks becomes a new first step.
+
+**Loading it never stops DoKey.** A parse error is logged and the shipped
+keymap is kept — it used to raise straight out of `from_file` and prevent
+startup. The exception's *message* is deliberately not logged: parse errors
+quote the offending line, and these files hold addresses and logins.
+
+`~/.dokey/help.yaml` holds the per-application help text shown by the help
+overlay, keyed by a substring of the active process name.
+
+`app/user_config.example.yaml` is the tracked, sanitised example of that file
+and the only documentation of the override format that ships with DoKey;
+`tests/test_user_config_example.py` loads it through the real code path so it
+cannot rot. **The owner's real overrides are personal** — addresses, logins,
+private URLs — and live only in `~/.dokey`. `.gitignore` blocks
+`app/user_config.yaml` for exactly that reason: it is a safety net, not a stale
+path. Never commit it, never quote its contents, and never put example values
+in it that look real.
 
 ## Gotchas that will bite you
 
-- **Adding a new two-step first step needs two edits.** A new top-level section in
-  `config.yaml` does nothing unless the key is also added to `FIRST_STEPS` in
-  `app/keys.py`.
+- **Adding a two-step first step is one edit now.** In v2 a new section under
+  `two_step:` is a first step by virtue of existing. `FIRST_STEPS` in
+  `app/keys.py` survives only as the v1 default — do not consult it anywhere
+  else; ask `config.is_first_step(key)`.
+- **`yaml_lite` is more permissive than YAML in one place that matters here:**
+  an unquoted `": "` inside a value parses for it and fails in PyYAML, so a
+  `__write__<TODO: >` binding must be quoted. `test_yaml_lite.py` compares the
+  two parsers on every `*.yaml` in the repo and will catch it.
+- **Never let config content into a log message.** `__write__` expansions and
+  `__command__` lines hold addresses, logins and private URLs, and `dokey.log`
+  keeps seven daily rotations. Three rules follow, all pinned by
+  `tests/test_log_privacy.py`: `yaml_lite` parse errors name a **line number**
+  and never quote the line; `Keys.from_string` names the *marker* when handed a
+  `__write__`/`__command__` value instead of echoing it (config values reach it,
+  not just key names); and `try_load_users_config` logs `type(error).__name__`
+  rather than the message. The usage log records binding IDs and action kinds
+  only, and the keyboard overlay shows `CMD`/`TEXT` rather than contents — keep
+  it that way.
 - **`Keys.from_string()` returns `None` for an unknown name**; it does not raise.
   A typo in `config.yaml` still produces a `None` key that can never match, so the
   binding silently does nothing — but it is now logged at error level. `Keys.NONE`

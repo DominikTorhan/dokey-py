@@ -216,7 +216,7 @@ class KeyProcessor:
         if self.state.first_step != Keys.NONE:
             return None
 
-        if key.is_first_step():
+        if self.config.is_first_step(key):
             self.state.first_step = key
             return self._tag(Event(True), f"prefix.{key.name.lower()}", "prefix")
 

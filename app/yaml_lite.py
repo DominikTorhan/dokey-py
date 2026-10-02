@@ -12,6 +12,11 @@ rather than silently producing the wrong structure.
 
 tests/test_yaml_lite.py checks this parser against PyYAML on every YAML file in
 the repo, so the two cannot drift apart unnoticed.
+
+Parse errors name the **line number** and never quote the line. These files hold
+`__write__` expansions and `__command__` lines - addresses, logins, private URLs
+- and an error message ends up wherever the caller logs it. A location is enough
+to find the problem; the content is what must not travel.
 """
 
 import re
@@ -34,14 +39,20 @@ def safe_load(stream) -> Any:
     return value
 
 
-def _clean(text: str) -> List[Tuple[int, str]]:
-    """Drop comments and blank lines, returning (indent, content) pairs."""
+def _clean(text: str) -> List[Tuple[int, str, int]]:
+    """Drop comments and blank lines -> (indent, content, 1-based line number).
+
+    The line number is carried so errors can point at a line without repeating
+    what is on it.
+    """
     out = []
-    for raw in text.splitlines():
+    for number, raw in enumerate(text.splitlines(), start=1):
         content = _strip_comment(raw)
         if not content.strip():
             continue
-        out.append((len(content) - len(content.lstrip(" ")), content.strip()))
+        out.append(
+            (len(content) - len(content.lstrip(" ")), content.strip(), number)
+        )
     return out
 
 
@@ -116,22 +127,22 @@ def _unquote(s: str) -> Tuple[str, bool]:
     return s, False
 
 
-def _parse_scalar(s: str) -> Any:
+def _parse_scalar(s: str, line: int = 0) -> Any:
     s = s.strip()
     if not s:
         return None
     if s[0] in "&*!|>":
-        raise ValueError(f"unsupported YAML syntax: {s!r}")
+        raise ValueError(f"unsupported YAML syntax on line {line}")
     if s.startswith("["):
         if not s.endswith("]"):
-            raise ValueError(f"unterminated flow sequence: {s!r}")
+            raise ValueError(f"unterminated flow sequence on line {line}")
         inner = s[1:-1].strip()
         if not inner:
             return []
-        return [_parse_scalar(part) for part in _split_top(inner)]
+        return [_parse_scalar(part, line) for part in _split_top(inner)]
     if s.startswith("{"):
         if not s.endswith("}"):
-            raise ValueError(f"unterminated flow mapping: {s!r}")
+            raise ValueError(f"unterminated flow mapping on line {line}")
         inner = s[1:-1].strip()
         if not inner:
             return {}
@@ -139,9 +150,9 @@ def _parse_scalar(s: str) -> Any:
         for part in _split_top(inner):
             kv = _split_key(part.strip())
             if kv is None:
-                raise ValueError(f"bad flow mapping entry: {part!r}")
+                raise ValueError(f"bad flow mapping entry on line {line}")
             key, _ = _unquote(kv[0])
-            result[key] = _parse_scalar(kv[1])
+            result[key] = _parse_scalar(kv[1], line)
         return result
     value, was_quoted = _unquote(s)
     if not was_quoted and _INT_RE.match(value):
@@ -162,18 +173,18 @@ def _parse_block(lines, i: int, indent: int) -> Tuple[Any, int]:
 def _parse_map(lines, i: int, indent: int) -> Tuple[dict, int]:
     result = {}
     while i < len(lines):
-        cur_indent, text = lines[i]
+        cur_indent, text, line = lines[i]
         if cur_indent < indent:
             break
         if cur_indent > indent:
-            raise ValueError(f"unexpected indent at {text!r}")
+            raise ValueError(f"unexpected indent on line {line}")
         kv = _split_key(text)
         if kv is None:
-            raise ValueError(f"not a mapping entry: {text!r}")
+            raise ValueError(f"not a mapping entry on line {line}")
         raw_key, rest = kv
         key, _ = _unquote(raw_key)
         if rest:
-            result[key] = _parse_scalar(rest)
+            result[key] = _parse_scalar(rest, line)
             i += 1
             continue
         nxt = i + 1
@@ -191,14 +202,16 @@ def _parse_map(lines, i: int, indent: int) -> Tuple[dict, int]:
 def _parse_seq(lines, i: int, indent: int) -> Tuple[list, int]:
     result = []
     while i < len(lines):
-        cur_indent, text = lines[i]
+        cur_indent, text, line = lines[i]
         if cur_indent < indent or not _is_seq(text):
             break
         rest = text[1:].strip()
         if rest:
             if _split_key(rest) and not rest.startswith(("[", "{")):
-                raise ValueError(f"block mapping on a '-' line is unsupported: {text!r}")
-            result.append(_parse_scalar(rest))
+                raise ValueError(
+                    f"block mapping on a '-' line is unsupported, line {line}"
+                )
+            result.append(_parse_scalar(rest, line))
             i += 1
             continue
         nxt = i + 1

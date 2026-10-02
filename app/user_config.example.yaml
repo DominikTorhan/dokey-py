@@ -1,0 +1,80 @@
+# Example personal overrides for DoKey. Copy it, do not edit it in place.
+#
+#   Windows   C:\Users\<you>\.dokey\user_config.yaml
+#   Linux     ~/.dokey/user_config.yaml
+#
+# DoKey reads ONLY that copy. A file left next to config.yaml in the repo is
+# never loaded, however it is named - so if a binding here seems to do nothing,
+# check which file you actually edited. Your real overrides are personal, and
+# .gitignore already blocks app/user_config.yaml so they cannot be committed by
+# accident. This example is the one file of the pair that belongs in the repo.
+#
+# WHAT IT CAN OVERRIDE
+#
+# With "version: 2" below: control keys, either layer, and any two-step section.
+# A section named here that config.yaml does not have becomes a new first step.
+# Entries merge over the shipped keymap and replace a binding on the same key;
+# there is still no way to *remove* one, only to add or replace.
+#
+# A file without "version: 2" is read in the old format, where the whole file is
+# two-step sections and nothing else - those still load unchanged, so there is
+# no hurry to convert one that works.
+#
+# A file that fails to parse is skipped with one line in the log; DoKey starts
+# with the shipped keymap rather than refusing to start.
+#
+# VALUE SYNTAX - the same as config.yaml
+#
+#   ctrl+shift+v                    one chord
+#   up, end, enter                  a sequence of chords, sent in order
+#   __command__<some command line>  run through the shell, output discarded
+#   __write__<text>                 type the text literally
+#
+# A note on what ends up where: DoKey's usage logs record which binding fired,
+# never the text it typed or the command line it ran, and the keyboard overlay
+# shows only "CMD" or "TEXT" for these. The file itself is plain text though, so
+# treat it like any other dotfile.
+
+
+version: 2
+
+# keys: # control keys can be moved from here too
+#   keyboard: semicolon
+
+# layers: # single-key and Caps-held bindings, which the old format could not touch
+#   common:
+#     bindings:
+#       g: ctrl+home
+
+two_step:
+
+  a: # a good home for launchers and text expansions
+    title: launchers # shown on the keyboard overlay instead of "cmd/text"
+    bindings:
+      # Programs. Quote any path containing spaces; %VARS% are expanded by the shell.
+      w: __command__<"%programfiles%\WezTerm\wezterm-gui.exe">
+      n: __command__<%windir%\system32\notepad.exe>
+      p: __command__<"%programfiles(x86)%\Some Program\program.exe">
+
+      # Browsers. "start" hands the argument to the registered handler.
+      b: __command__<start chrome /new-tab --profile-directory="Default">
+      m: __command__<start chrome /new-tab mail.example.com --profile-directory="Default">
+      e: __command__<start msedge>
+      y: __command__<start brave /new-tab "https://example.com">
+
+      # Anything reachable from the shell, including WSL.
+      h: __command__<wsl code ~/notes>
+
+      # Text you retype constantly.
+      a: __write__<you@example.com>
+      s: __write__<000000000>
+      d: __write__<you@work.example.com>
+
+      # Keep a spare binding around, commented out, rather than deleting it.
+      # z: __write__<something you only need some months>
+
+  i: # sections that already exist in config.yaml extend the same way
+    bindings:
+      # Quote the value if the text contains ": " - unquoted, YAML reads that as a
+      # nested mapping and the whole file fails to load.
+      d3: "__write__<TODO: >"

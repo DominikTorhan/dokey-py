@@ -73,9 +73,24 @@ python tools/keyboard_preview.py --tab common
 
 ## Configuration
 
-- `app/config.yaml` – keyboard mappings and custom commands.
+- `app/config.yaml` – keyboard mappings and custom commands, in the version 2
+  format: `keys:` for the control keys, `layers:` for single-key and Caps-held
+  bindings, `two_step:` for the chord sections. Older files without
+  `version: 2` still load.
 - `app/mouse_config.yaml` – coordinates for the mouse mode.
-- Optional user overrides can be placed in `~/.dokey/user_config.yaml`.
+- `app/user_config.example.yaml` – a commented example of the personal
+  overrides file. Copy it to `~/.dokey/user_config.yaml` (on Windows,
+  `C:\Users\<you>\.dokey\user_config.yaml`) and edit that copy.
+
+Overrides are read **only** from `~/.dokey`; a file left beside `config.yaml`
+in the repo is never loaded, whatever it is called. A `version: 2` override
+file may replace control keys, either layer, and any two-step section, and a
+section config.yaml does not have becomes a new first step. A file without that
+line is read in the old format, where the whole file is two-step sections and
+nothing else. Either way a file that fails to parse is skipped with one line in
+the log and DoKey starts on the shipped keymap. Personal overrides tend to hold
+addresses, logins and private URLs, so keep them out of the repo; `.gitignore`
+already blocks `app/user_config.yaml`.
 
 Use `__focus__<process.exe::title prefix>` in a two-step mapping to activate an
 existing window. Both comparisons are case-insensitive; the executable name must

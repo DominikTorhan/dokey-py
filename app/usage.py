@@ -16,7 +16,7 @@ from app.events import (
     SendEvent,
     WriteEvent,
 )
-from app.keys import FIRST_STEPS, Keys
+from app.keys import Keys
 from app.version import VERSION
 
 SESSION_ID = uuid.uuid4().hex
@@ -41,6 +41,10 @@ def configuration(config, mouse_config):
             return {str(encode(k)): encode(v) for k, v in value.items()}
         if isinstance(value, (list, tuple)):
             return [encode(v) for v in value]
+        if isinstance(value, (set, frozenset)):
+            # sorted, so a set never makes the fingerprint depend on iteration
+            # order; str() because the members may not be comparable to sort raw
+            return sorted(str(encode(v)) for v in value)
         if hasattr(value, "__dict__"):
             return {"type": type(value).__name__, "value": encode(vars(value))}
         return value
@@ -48,7 +52,11 @@ def configuration(config, mouse_config):
     payload = json.dumps(
         encode([vars(config), mouse_config.positions]), sort_keys=True
     ).encode("utf-8")
-    bindings = {f"prefix.{key.name.lower()}": "prefix" for key in FIRST_STEPS}
+    bindings = {
+        f"prefix.{key.name.lower()}": "prefix"
+        for key in config.first_steps
+        if key is not None
+    }
     bindings.update(
         {
             "control.off_mode": "mode",
